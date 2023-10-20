@@ -1,6 +1,7 @@
 # `create3`
 
-Holds a ROS2 C++ server for communicating with the create3 robot and an associated client library for communicating with said server.
+Holds a ROS2 C++ server for communicating with the create3 robot and an associated client library for communicating
+with said server. The server can then be packaged into a docker image, allowing the client to remain free of ROS2 dependencies.
 
 The RPC between client and server is handled by Cap'n Proto.
 
