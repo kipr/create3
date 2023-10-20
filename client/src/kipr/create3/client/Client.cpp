@@ -35,5 +35,5 @@ void Client::setVelocity(const double linear_x, const double angular_z)
   Twist::Builder twist = request.initTwist();
   twist.setLinearX(linear_x);
   twist.setAngularZ(angular_z);
-  request.send();
+  request.send().wait(impl_->waitScope());
 }
