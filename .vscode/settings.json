@@ -1,0 +1,14 @@
+{
+  "C_Cpp.default.includePath": [
+    "${workspaceFolder}/build/_deps/capnproto-src/c++/src",
+    "${workspaceFolder}/build/_deps/googletest-src/googletest/include",
+    "${workspaceFolder}/build/_deps/cxxopts-src/include",
+    "${workspaceFolder}/client/include",
+    "${workspaceFolder}/server/include",
+    "${workspaceFolder}/build/common/schema",
+  ],
+  "files.associations": {
+    "*.page": "json",
+    "mutex": "cpp"
+  }
+}
