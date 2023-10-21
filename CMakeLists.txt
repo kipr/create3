@@ -8,9 +8,16 @@ option("client" "Build the client" ON)
 option("server" "Build the server" ON)
 option("cmder" "Build the cmder" ON)
 option("tests" "Enable tests" ON)
+option("debug" "Enable debugging" OFF)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+if (debug)
+  set(CMAKE_BUILD_TYPE Debug)
+else()
+  set(CMAKE_BUILD_TYPE Release)
+endif()
 
 if (tests)
   enable_testing()

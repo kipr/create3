@@ -1,29 +1,38 @@
 #include "kipr/create3/client/ClientImpl.hpp"
 
+using namespace kipr::create3;
 using namespace kipr::create3::client;
 
-ClientImpl::ClientImpl(const std::string_view &host, const std::uint16_t port)
-  : client_(std::make_optional<capnp::EzRpcClient>(kj::StringPtr(host.data(), host.data() + host.size()), port))
-  , create3_client_(client_->getMain<Create3>())
-  , loop_()
-  , wait_(loop_)
+
+RemoteClientImpl::RemoteClientImpl(const std::string &host, const std::uint16_t port)
+  : client(kj::StringPtr(host.data()), port)
+  , create3_client(client.getMain<Create3>())
 {
 }
 
-ClientImpl::ClientImpl(kj::Own<Create3::Server> &&server)
-  : client_(std::nullopt)
-  , create3_client_(std::move(server))
-  , loop_()
-  , wait_(loop_)
+kj::WaitScope &RemoteClientImpl::waitScope()
+{
+  return client.getWaitScope();
+}
+
+Create3::Client &RemoteClientImpl::create3Client()
+{
+  return create3_client;
+}
+
+LocalClientImpl::LocalClientImpl(kj::Own<Create3::Server> &&server)
+  : create3_client(std::move(server))
+  , loop()
+  , wait(loop)
 {
 }
 
-kj::WaitScope &ClientImpl::waitScope()
+kj::WaitScope &LocalClientImpl::waitScope()
 {
-  if (client_)
-  {
-    return client_->getWaitScope();
-  }
+  return wait;
+}
 
-  return wait_;
+Create3::Client &LocalClientImpl::create3Client()
+{
+  return create3_client;
 }

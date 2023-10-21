@@ -1,8 +1,9 @@
 #pragma once
 
-#include <string_view>
+#include <string>
 #include <cstdint>
 #include <optional>
+#include <variant>
 #include <capnp/ez-rpc.h>
 #include "kipr/create3/create3.capnp.h"
 
@@ -14,19 +15,34 @@ namespace client
 {
   struct ClientImpl
   {
-    ClientImpl(const std::string_view &host, const std::uint16_t port);
+    virtual kj::WaitScope &waitScope() = 0;
+    virtual Create3::Client &create3Client() = 0;
 
-    ClientImpl(kj::Own<Create3::Server> &&server);
+    std::optional<kj::Promise<void>> last_waitable; 
+  };
 
-    kj::WaitScope &waitScope();
+  struct RemoteClientImpl : public ClientImpl
+  {
+    RemoteClientImpl(const std::string &host, const std::uint16_t port);
 
-    std::optional<capnp::EzRpcClient> client_;
-    kj::EventLoop loop_;
-    kj::WaitScope wait_;
-    Create3::Client create3_client_;
+    kj::WaitScope &waitScope() override;
+    Create3::Client &create3Client() override;
 
-    std::optional<kj::Promise<void>> last_waitable_; 
+    capnp::EzRpcClient client;
+    Create3::Client create3_client;
   }; 
+
+  struct LocalClientImpl : public ClientImpl
+  {
+    LocalClientImpl(kj::Own<Create3::Server> &&server);
+
+    kj::WaitScope &waitScope() override;
+    Create3::Client &create3Client() override;
+
+    Create3::Client create3_client;
+    kj::EventLoop loop;
+    kj::WaitScope wait;
+  };
 }
 }
 }

@@ -14,8 +14,8 @@ Client::Client(std::unique_ptr<ClientImpl> &&impl)
 {
 }
 
-Client::Client(const std::string_view &host, const std::uint16_t port)
-  : impl_(std::make_unique<ClientImpl>(host, port))
+Client::Client(const std::string &host, const std::uint16_t port)
+  : impl_(std::make_unique<RemoteClientImpl>(host, port))
 {
 }
 
@@ -25,7 +25,7 @@ Client::~Client()
 
 bool Client::isConnected()
 {
-  auto request = impl_->create3_client_.isConnectedRequest();
+  auto request = impl_->create3Client().isConnectedRequest();
   const auto response = request.send().wait(impl_->waitScope());
   return response.getConnected();
 }
@@ -34,40 +34,40 @@ void Client::wait()
 {
   std::lock_guard<std::mutex> lock(wait_mut_);
 
-  if (!impl_->last_waitable_)
+  if (!impl_->last_waitable)
   {
     return;
   }
 
-  impl_->last_waitable_->wait(impl_->waitScope());
-  impl_->last_waitable_ = std::nullopt;
+  impl_->last_waitable->wait(impl_->waitScope());
+  impl_->last_waitable = std::nullopt;
 }
 
 void Client::executeNextCommandImmediately()
 {
   std::lock_guard<std::mutex> lock(wait_mut_);
   // Forget about the last waitable
-  impl_->last_waitable_ = std::nullopt;
+  impl_->last_waitable = std::nullopt;
 }
 
 void Client::setVelocity(const Twist &velocity)
 {
   wait();
 
-  auto request = impl_->create3_client_.setVelocityRequest();
+  auto request = impl_->create3Client().setVelocityRequest();
   auto velocityBuilder = request.initVelocity();
   velocityBuilder.setLinearX(velocity.linear_x);
   velocityBuilder.setAngularZ(velocity.angular_z);
 
   std::lock_guard<std::mutex> lock(wait_mut_);
-  impl_->last_waitable_ = request.send().ignoreResult();
+  impl_->last_waitable = request.send().ignoreResult();
 }
 
 void Client::playAudio(const AudioNote *const notes, const std::size_t count, const bool overwrite)
 {
   wait();
 
-  auto request = impl_->create3_client_.playAudioRequest();
+  auto request = impl_->create3Client().playAudioRequest();
   auto notesBuilder = request.initNotes(count);
 
   for (std::size_t i = 0; i < count; ++i)
@@ -79,7 +79,42 @@ void Client::playAudio(const AudioNote *const notes, const std::size_t count, co
   request.setOverwrite(overwrite);
 
   std::lock_guard<std::mutex> lock(wait_mut_);
-  impl_->last_waitable_ = request.send().ignoreResult();
+  impl_->last_waitable = request.send().ignoreResult();
+}
+
+void Client::dock()
+{
+
+}
+
+void Client::undock()
+{
+
+}
+
+void Client::driveStraight(const float distance, const float max_linear_speed)
+{
+
+}
+
+void Client::driveArc(const Direction direction, const float radius, const float angle, const float max_linear_speed)
+{
+
+}
+
+void Client::rotate(const float angle, const float max_angular_speed)
+{
+
+}
+
+void Client::navigateTo(const Pose &pose, const float max_linear_speed, const float max_angular_speed, const bool achieve_goal_heading)
+{
+
+}
+
+void Client::followWall(const Follow follow, const float max_seconds)
+{
+
 }
 
 Odometry Client::getOdometry() const
@@ -97,7 +132,7 @@ Odometry Client::getOdometry() const
   }
   
 
-  auto request = impl_->create3_client_.getOdometryRequest();
+  auto request = impl_->create3Client().getOdometryRequest();
   const auto response = request.send().wait(impl_->waitScope());
 
   const auto pose = response.getPose();
@@ -123,6 +158,6 @@ Odometry Client::getOdometry() const
   odometry.velocity.angular_z = velocity.getAngularZ();
 
   std::lock_guard<std::mutex> lock(latest_odometry_mut_);
-  latest_odometry_ = Stamped<Odometry>{ .at = system_clock::now().time_since_epoch(), .value = odometry };
+  latest_odometry_ = Stamped<Odometry>{ .at = duration_cast<milliseconds>(system_clock::now().time_since_epoch()), .value = odometry };
   return odometry;
 }

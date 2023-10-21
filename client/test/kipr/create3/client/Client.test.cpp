@@ -33,7 +33,9 @@ TEST(Client, setVelocity) {
   double linear_x = 0.0;
   double angular_z = 0.0;
   
-  mockClient(kj::heap<Server>(linear_x, angular_z)).setVelocity({ .linear_x = 1.0, .angular_z = 2.0 });
+  auto client = mockClient(kj::heap<Server>(linear_x, angular_z));
+  client.setVelocity({ .linear_x = 1.0, .angular_z = 2.0 });
+  client.wait();
 
   EXPECT_EQ(linear_x, 1.0);
   EXPECT_EQ(angular_z, 2.0);

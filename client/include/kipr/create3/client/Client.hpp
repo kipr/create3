@@ -5,11 +5,13 @@
 #include <memory>
 #include <mutex>
 #include <chrono>
+#include <optional>
 
 #include "AudioNote.hpp"
 #include "Odometry.hpp"
 #include "Twist.hpp"
 #include "Follow.hpp"
+#include "Pose.hpp"
 #include "Direction.hpp"
 
 namespace kipr
@@ -23,7 +25,7 @@ namespace client
   template<typename T>
   struct Stamped
   {
-    std::chrono::time_point at;
+    std::chrono::milliseconds at;
     T value;
   };
 
@@ -31,7 +33,8 @@ namespace client
   {
   public:
     Client(std::unique_ptr<ClientImpl> &&impl);
-    Client(const std::string_view &host = "localhost", const std::uint16_t port = 8374);
+    Client(Client &&rhs) = default;
+    Client(const std::string &host = "localhost", const std::uint16_t port = 8374);
     ~Client();
 
     bool isConnected();
@@ -56,6 +59,8 @@ namespace client
     Odometry getOdometry() const;
 
   private:
+    Client(const Client &) = delete;
+
     std::unique_ptr<ClientImpl> impl_;
 
     mutable std::mutex wait_mut_;

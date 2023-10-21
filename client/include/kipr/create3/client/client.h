@@ -183,7 +183,7 @@ void create3_drive_arc(const Create3Direction direction, const float radius, con
     
 void create3_rotate(const float angle, const float max_angular_speed);
 
-void create3_navigate_to(const Create3Pose pose, const float max_linear_speed, const float max_angular_speed, const bool achieve_goal_heading);
+void create3_navigate_to(const Create3Pose pose, const float max_linear_speed, const float max_angular_speed, const int achieve_goal_heading);
 
 void create3_follow_wall(const Create3Follow follow, const float max_seconds);
 

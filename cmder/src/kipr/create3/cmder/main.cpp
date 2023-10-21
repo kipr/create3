@@ -3,13 +3,14 @@
 
 #include <clipp.h>
 #include <iostream>
-#include <string_view>
 #include <string>
 
-std::pair<std::string_view, std::uint16_t> parseAddress(const std::string &address, const std::uint16_t default_port)
+using namespace kipr::create3::client;
+
+std::pair<std::string, std::uint16_t> parseAddress(const std::string &address, const std::uint16_t default_port)
 {
   auto sep = address.find(':');
-  if(sep == std::string_view::npos)
+  if(sep == std::string::npos)
   {
     return std::make_pair(address, default_port);
   }
@@ -39,10 +40,23 @@ std::string programName(const char *const argv0)
 enum class Mode
 {
   SetVelocity,
+  Undock,
+  Dock,
   Help
 };
 
+struct AutoWaitClient : public Client
+{
+  AutoWaitClient(const std::string &host, const std::uint16_t port)
+    : Client(host, port)
+  {
+  }
 
+  ~AutoWaitClient()
+  {
+    wait();
+  }
+};
 
 int main(int argc, char *argv[])
 {
@@ -51,6 +65,8 @@ int main(int argc, char *argv[])
   std::string address = "localhost:50051";
 
   Mode mode = Mode::Help;
+  double linear_x = 0.0;
+  double angular_z = 0.0;
 
   auto cli = (
     command("help").set(mode, Mode::Help) % "Print the man page" |
@@ -58,7 +74,9 @@ int main(int argc, char *argv[])
       group(),
       option("--address", "-a") & value("host:port") % "The server's address" >> set(address),
       (
-        (command("set_velocity") >> set(mode, Mode::SetVelocity), value("linear_x"), value("angular_z"))
+        (command("set_velocity") >> set(mode, Mode::SetVelocity), value("linear_x") >> set(linear_x), value("angular_z") >> set(angular_z)) |
+        (command("undock") >> set(mode, Mode::Undock)) |
+        (command("dock") >> set(mode, Mode::Undock))
       )
     )
   );
@@ -72,26 +90,27 @@ int main(int argc, char *argv[])
 
   const auto init_client = [&address]() {
     auto [host, port] = parseAddress(address, 50051);
-    return kipr::create3::client::Client(host, port);
+    return AutoWaitClient(host, port);
   };
 
   switch (mode)
   {
     case Mode::Help:
-    {
       std::cout << make_man_page(cli, programName(argv[0])) << std::endl;
-      return EXIT_SUCCESS;
-    }
+      break;
     case Mode::SetVelocity:
-    {
-      init_client().setVelocity(0.5, 0.0);
-      return EXIT_SUCCESS;
-    }
+      init_client().setVelocity(Twist {
+        .linear_x = linear_x,
+        .angular_z = angular_z
+      });
+      break;
+    case Mode::Dock:
+      init_client().dock();
+      break;
+    case Mode::Undock:
+      init_client().undock();
+      break;
   }
-
-  
-  
-  
   
   return EXIT_SUCCESS;
 }
