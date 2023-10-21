@@ -14,10 +14,36 @@ FetchContent_Declare(googletest
   URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
   URL_HASH SHA256=edd885a1ab32b6999515a880f669efadb80b3f880215f315985fa3f6eca7c4d3
 )
+
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(capnproto clipp googletest)
+
+# Set -fPIC
+set_target_properties(
+  capnp-rpc
+  PROPERTIES
+  POSITION_INDEPENDENT_CODE ON
+)
+
+set_target_properties(
+  capnp
+  PROPERTIES
+  POSITION_INDEPENDENT_CODE ON
+)
+
+set_target_properties(
+  kj-async
+  PROPERTIES
+  POSITION_INDEPENDENT_CODE ON
+)
+
+set_target_properties(
+  kj
+  PROPERTIES
+  POSITION_INDEPENDENT_CODE ON
+)
 
 add_executable(CapnProto::capnp_tool IMPORTED)
 set_target_properties(CapnProto::capnp_tool PROPERTIES

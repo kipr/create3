@@ -6,39 +6,35 @@
 
 using namespace kipr::create3::client;
 
-// Demonstrate some basic assertions.
-TEST(Client, setVelocity) {  
+TEST(Client, setVelocity) {
   class Server final : public Create3::Server {
   public:
-    Server(Twist::Reader &twist)
-      : twist_(twist)
+    Server(double &linear_x, double &angular_z)
+      : linear_x_(linear_x)
+      , angular_z_(angular_z)
     {
-    }
-
-    kj::Promise<void> isConnected(IsConnectedContext context) override
-    {
-      context.initResults().setConnected(true);
-    
-      return kj::READY_NOW;
     }
 
     kj::Promise<void> setVelocity(SetVelocityContext context) override
     {
-      twist_ = context.getParams().getTwist();
+      auto twist = context.getParams().getTwist();
+      linear_x_ = twist.getLinearX();
+      angular_z_ = twist.getAngularZ();
+
 
       return kj::READY_NOW;
     }
 
   private:
-    Twist::Reader &twist_;
+    double &linear_x_;
+    double &angular_z_;
   };
 
-  Twist::Reader twist;
+  double linear_x = 0.0;
+  double angular_z = 0.0;
   
-  Client client(std::move(mockImpl(kj::heap<Server>(twist))));
+  mockClient(kj::heap<Server>(linear_x, angular_z)).setVelocity(1.0, 2.0);
 
-  // client.setVelocity(1.0, 2.0);
-
-  EXPECT_EQ(twist.getLinearX(), 1.0);
-  EXPECT_EQ(twist.getAngularZ(), 2.0);
+  EXPECT_EQ(linear_x, 1.0);
+  EXPECT_EQ(angular_z, 2.0);
 }

@@ -7,6 +7,7 @@ add_executable(${CMAKE_PROJECT_NAME}_server
 
 ament_target_dependencies(${CMAKE_PROJECT_NAME}_server
   rclcpp
+  std_msgs
 )
 
 install(TARGETS
