@@ -5,14 +5,18 @@
 
 #include <std_msgs/msg/string.hpp>
 #include <geometry_msgs/msg/twist.hpp>
+#include <nav_msgs/msg/odometry.hpp>
 
 #include <irobot_create_msgs/msg/wheel_vels.hpp>
 #include <irobot_create_msgs/action/dock.hpp>
 #include <irobot_create_msgs/action/undock.hpp>
+#include <irobot_create_msgs/action/navigate_to_position.hpp>
 
 #include <kipr/create3/create3.capnp.h>
 #include <capnp/ez-rpc.h>
 #include <kj/async.h>
+
+#include <iostream>
 
 using namespace std::chrono_literals;
 
@@ -39,7 +43,7 @@ private:
       return;
     }
 
-    fulfiller_.reject(kj::Exception(kj::Exception::Type::FAILED, __FILE__, __LINE__));
+    fulfiller_.reject(kj::Exception(kj::Exception::Type::FAILED, __FILE__, __LINE__, kj::heapString("Failed to send goal")));
   }
 
   void onResult(const typename rclcpp_action::ClientGoalHandle<T>::WrappedResult &result)
@@ -50,7 +54,14 @@ private:
         fulfiller_.fulfill(typename T::Result::SharedPtr(result.result));
         break;
       default:
-        fulfiller_.reject(kj::Exception(kj::Exception::Type::FAILED, __FILE__, __LINE__));
+        std::ostringstream ss;
+        ss << "Action failed with code " << static_cast<int>(result.code);
+        fulfiller_.reject(kj::Exception(
+          kj::Exception::Type::FAILED,
+          __FILE__,
+          __LINE__,
+          kj::heapString(ss.str())
+        ));
         break;
     }
   }
@@ -67,7 +78,12 @@ AdaptedAction<T> adaptAction(const typename std::shared_ptr<rclcpp_action::Clien
   return [client](auto goal) {
     if (!client->wait_for_action_server(10s))
     {
-      return kj::Promise<typename T::Result::SharedPtr>(kj::Exception(kj::Exception::Type::FAILED, __FILE__, __LINE__));
+      return kj::Promise<typename T::Result::SharedPtr>(kj::Exception(
+        kj::Exception::Type::FAILED,
+        __FILE__,
+        __LINE__,
+        kj::heapString("Failed to connect to action server")
+      ));
     }
 
     return kj::newAdaptedPromise<typename T::Result::SharedPtr, ActionPromiseAdapter<T>>(client, goal);
@@ -85,8 +101,14 @@ public:
   Create3Node()
     : Node("create3")
     , cmd_vel_pub_(create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10))
+    , odom_sub_(create_subscription<nav_msgs::msg::Odometry>(
+        "odom",
+        rclcpp::QoS(rclcpp::KeepLast(10), rmw_qos_profile_sensor_data),
+        std::bind(&Create3Node::onOdom, this, std::placeholders::_1)
+      ))
     , dock(adaptAction(rclcpp_action::create_client<create_action::Dock>(this, "dock")))
     , undock(adaptAction(rclcpp_action::create_client<create_action::Undock>(this, "undock")))
+    , navigate_to(adaptAction(rclcpp_action::create_client<create_action::NavigateToPosition>(this, "navigate_to_position")))
   {
   }
 
@@ -98,9 +120,23 @@ public:
 
   const AdaptedAction<create_action::Dock> dock;
   const AdaptedAction<create_action::Undock> undock;
+  const AdaptedAction<create_action::NavigateToPosition> navigate_to;
+
+  const nav_msgs::msg::Odometry::ConstSharedPtr &getOdometry() const
+  {
+    return latest_odom_;
+  }
 
 private:
+  void onOdom(const nav_msgs::msg::Odometry::ConstSharedPtr &msg)
+  {
+    latest_odom_ = msg;
+  }
+
   rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub_;
+  rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
+
+  nav_msgs::msg::Odometry::ConstSharedPtr latest_odom_;
 };
 
 class Create3Server : public kipr::create3::Create3::Server
@@ -109,6 +145,14 @@ public:
   Create3Server(const std::shared_ptr<Create3Node> &node)
     : node_(node)
   {
+  }
+
+  kj::Promise<void> isConnected(IsConnectedContext context) override
+  {
+    auto response = context.getResults();
+    response.setConnected(true);
+
+    return kj::READY_NOW;
   }
 
   kj::Promise<void> setVelocity(SetVelocityContext context) override
@@ -133,9 +177,49 @@ public:
     return node_->undock(create_action::Undock::Goal {}).ignoreResult();
   }
 
+  kj::Promise<void> navigateTo(NavigateToContext context) override
+  {
+    auto params = context.getParams();
+    auto pose = params.getPose();
+
+    create_action::NavigateToPosition::Goal goal;
+    goal.goal_pose.pose.position.x = pose.getPosition().getX();
+    goal.goal_pose.pose.position.y = pose.getPosition().getY();
+    goal.goal_pose.pose.position.z = pose.getPosition().getZ();
+
+    goal.goal_pose.pose.orientation.x = pose.getOrientation().getX();
+    goal.goal_pose.pose.orientation.y = pose.getOrientation().getY();
+    goal.goal_pose.pose.orientation.z = pose.getOrientation().getZ();
+    goal.goal_pose.pose.orientation.w = pose.getOrientation().getW();
+
+    goal.max_translation_speed = params.getMaxLinearSpeed();
+    goal.max_rotation_speed = params.getMaxAngularSpeed();
+    goal.achieve_goal_heading = params.getAchieveGoalHeading();
+
+    return node_->navigate_to(goal).ignoreResult();
+  }
+
   kj::Promise<void> getOdometry(GetOdometryContext context) override
   {
     auto response = context.getResults();
+
+    const auto odom = node_->getOdometry();
+
+    auto pose = response.initPose();
+    auto position = pose.initPosition();
+    position.setX(odom->pose.pose.position.x);
+    position.setY(odom->pose.pose.position.y);
+    position.setZ(odom->pose.pose.position.z);
+
+    auto orientation = pose.initOrientation();
+    orientation.setX(odom->pose.pose.orientation.x);
+    orientation.setY(odom->pose.pose.orientation.y);
+    orientation.setZ(odom->pose.pose.orientation.z);
+    orientation.setW(odom->pose.pose.orientation.w);
+
+    auto velocity = response.initVelocity();
+    velocity.setLinearX(odom->twist.twist.linear.x);
+    velocity.setAngularZ(odom->twist.twist.angular.z);
 
     return kj::READY_NOW;
   }
@@ -150,10 +234,11 @@ int main(int argc, char *const argv[])
   rclcpp::init(argc, argv);
 
   auto node = std::make_shared<Create3Node>();
-  auto server = capnp::EzRpcServer(kj::heap<Create3Server>(node), "*", 8374);
+  auto server = capnp::EzRpcServer(kj::heap<Create3Server>(node), "*", 50051);
 
   while (rclcpp::ok())
   {
+    server.getWaitScope().poll();
     rclcpp::spin_some(node);
   }
 

@@ -1,9 +1,12 @@
 #include <stdlib.h>
 #include <kipr/create3/client/Client.hpp>
+#include <kipr/create3/client/Vector3.hpp>
+#include <kipr/create3/client/Quaternion.hpp>
 
 #include <clipp.h>
 #include <iostream>
 #include <string>
+#include <thread>
 
 using namespace kipr::create3::client;
 
@@ -42,6 +45,8 @@ enum class Mode
   SetVelocity,
   Undock,
   Dock,
+  Odometry,
+  NavigateTo,
   Help
 };
 
@@ -50,6 +55,10 @@ struct AutoWaitClient : public Client
   AutoWaitClient(const std::string &host, const std::uint16_t port)
     : Client(host, port)
   {
+    while (!isConnected())
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
   }
 
   ~AutoWaitClient()
@@ -68,6 +77,10 @@ int main(int argc, char *argv[])
   double linear_x = 0.0;
   double angular_z = 0.0;
 
+  double navigate_to_position_x = 0.0;
+  double navigate_to_position_y = 0.0;
+  double navigate_to_position_z = 0.0;
+
   auto cli = (
     command("help").set(mode, Mode::Help) % "Print the man page" |
     (
@@ -76,7 +89,9 @@ int main(int argc, char *argv[])
       (
         (command("set_velocity") >> set(mode, Mode::SetVelocity), value("linear_x") >> set(linear_x), value("angular_z") >> set(angular_z)) |
         (command("undock") >> set(mode, Mode::Undock)) |
-        (command("dock") >> set(mode, Mode::Undock))
+        (command("dock") >> set(mode, Mode::Undock)) |
+        (command("odometry") >> set(mode, Mode::Odometry)) |
+        (command("navigate_to") >> set(mode, Mode::NavigateTo), value("x") >> set(navigate_to_position_x), value("y") >> set(navigate_to_position_y), value("z") >> set(navigate_to_position_z))
       )
     )
   );
@@ -109,6 +124,36 @@ int main(int argc, char *argv[])
       break;
     case Mode::Undock:
       init_client().undock();
+      break;
+    case Mode::Odometry:
+    {
+      const auto odometry = init_client().getOdometry();
+
+      std::cout << "Odometry:" << std::endl;
+      std::cout << "  Position:" << std::endl;
+      std::cout << "    x: " << odometry.pose.position.x << std::endl;
+      std::cout << "    y: " << odometry.pose.position.y << std::endl;
+      std::cout << "    z: " << odometry.pose.position.z << std::endl;
+      std::cout << "  Orientation:" << std::endl;
+      std::cout << "    x: " << odometry.pose.orientation.x << std::endl;
+      std::cout << "    y: " << odometry.pose.orientation.y << std::endl;
+      std::cout << "    z: " << odometry.pose.orientation.z << std::endl;
+      std::cout << "    w: " << odometry.pose.orientation.w << std::endl;
+      std::cout << "  Linear Velocity:" << std::endl;
+      std::cout << "    x: " << odometry.velocity.linear_x << std::endl;
+      std::cout << "  Angular Velocity:" << std::endl;
+      std::cout << "    z: " << odometry.velocity.angular_z << std::endl;
+
+      break;
+    }
+    case Mode::NavigateTo:
+      init_client().navigateTo(Pose {
+        .position = Vector3 {
+          .x = navigate_to_position_x,
+          .y = navigate_to_position_y,
+          .z = navigate_to_position_z
+        },
+      }, 0.5, 0.5, false);
       break;
   }
   

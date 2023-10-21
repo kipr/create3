@@ -4,6 +4,7 @@
 #include <kipr/create3/create3.capnp.h>
 #include <optional>
 #include <chrono>
+#include <iostream>
 
 #include "kipr/create3/client/ClientImpl.hpp"
 
@@ -84,12 +85,22 @@ void Client::playAudio(const AudioNote *const notes, const std::size_t count, co
 
 void Client::dock()
 {
+  wait();
 
+  auto request = impl_->create3Client().dockRequest();
+
+  std::lock_guard<std::mutex> lock(wait_mut_);
+  impl_->last_waitable = request.send().ignoreResult();
 }
 
 void Client::undock()
 {
+  wait();
 
+  auto request = impl_->create3Client().undockRequest();
+
+  std::lock_guard<std::mutex> lock(wait_mut_);
+  impl_->last_waitable = request.send().ignoreResult();
 }
 
 void Client::driveStraight(const float distance, const float max_linear_speed)
@@ -109,7 +120,28 @@ void Client::rotate(const float angle, const float max_angular_speed)
 
 void Client::navigateTo(const Pose &pose, const float max_linear_speed, const float max_angular_speed, const bool achieve_goal_heading)
 {
+  wait();
 
+  auto request = impl_->create3Client().navigateToRequest();
+
+  auto poseBuilder = request.initPose();
+  auto positionBuilder = poseBuilder.initPosition();
+  positionBuilder.setX(pose.position.x);
+  positionBuilder.setY(pose.position.y);
+  positionBuilder.setZ(pose.position.z);
+
+  auto orientationBuilder = poseBuilder.initOrientation();
+  orientationBuilder.setX(pose.orientation.x);
+  orientationBuilder.setY(pose.orientation.y);
+  orientationBuilder.setZ(pose.orientation.z);
+  orientationBuilder.setW(pose.orientation.w);
+
+  request.setMaxLinearSpeed(max_linear_speed);
+  request.setMaxAngularSpeed(max_angular_speed);
+  request.setAchieveGoalHeading(achieve_goal_heading);
+
+  std::lock_guard<std::mutex> lock(wait_mut_);
+  impl_->last_waitable = request.send().ignoreResult();
 }
 
 void Client::followWall(const Follow follow, const float max_seconds)

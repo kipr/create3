@@ -27,6 +27,7 @@
     "/opt/ros/humble/include/geometry_msgs",
     "/opt/ros/humble/include/unique_identifier_msgs",
     "/opt/ros/humble/include/action_msgs",
+    "/opt/ros/humble/include/nav_msgs",
     "/opt/ros/humble/include/rcl_action",
   ],
   "files.associations": {

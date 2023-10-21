@@ -34,7 +34,7 @@ namespace client
   public:
     Client(std::unique_ptr<ClientImpl> &&impl);
     Client(Client &&rhs) = default;
-    Client(const std::string &host = "localhost", const std::uint16_t port = 8374);
+    Client(const std::string &host = "localhost", const std::uint16_t port = 50051);
     ~Client();
 
     bool isConnected();
