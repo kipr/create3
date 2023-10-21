@@ -53,6 +53,8 @@ namespace client
     void driveArc(const Direction direction, const float radius, const float angle, const float max_linear_speed);
     void rotate(const float angle, const float max_angular_speed);
     void navigateTo(const Pose &pose, const float max_linear_speed, const float max_angular_speed, const bool achieve_goal_heading = true);
+    void navigateTo(const double x, const double y, const double theta, const float max_linear_speed, const float max_angular_speed);
+    void navigateTo(const double x, const double y, const float max_linear_speed, const float max_angular_speed);
     void followWall(const Follow follow, const float max_seconds);
 
 

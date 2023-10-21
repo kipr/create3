@@ -16,3 +16,21 @@ Create3Euler create3_euler_from_quaternion(const Create3Quaternion quaternion)
 
   return euler;
 }
+
+Create3Quaternion create3_euler_to_quaternion(const Create3Euler euler)
+{
+  const double c1 = std::cos(euler.x / 2.0);
+  const double c2 = std::cos(euler.y / 2.0);
+  const double c3 = std::cos(euler.z / 2.0);
+  const double s1 = std::sin(euler.x / 2.0);
+  const double s2 = std::sin(euler.y / 2.0);
+  const double s3 = std::sin(euler.z / 2.0);
+
+  Create3Quaternion quaternion;
+  quaternion.w = c1 * c2 * c3 - s1 * s2 * s3;
+  quaternion.x = s1 * s2 * c3 + c1 * c2 * s3;
+  quaternion.y = s1 * c2 * c3 + c1 * s2 * s3;
+  quaternion.z = c1 * s2 * c3 - s1 * c2 * s3;
+
+  return quaternion;
+}

@@ -8,7 +8,7 @@ extern "C" {
 
 typedef enum
 {
-  Create3FollowLeft =1,
+  Create3FollowLeft = 1,
   Create3FollowRight = -1,
 } Create3Follow;
 

@@ -12,8 +12,9 @@ int main()
 
 
   printf("Moving forward at 0.5 m/s for 1 second...\n");
+
   // Move forward at 0.5 m/s for 1 second
-  create3_velocity_set_components(0.5, 0.0);
+  create3_velocity_set_components(0.5, 0);
 
   // Wait for 1 second
   usleep(1000000);

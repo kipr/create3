@@ -276,7 +276,7 @@ void create3_rotate(const float angle, const float max_angular_speed)
   global_client->rotate(angle, max_angular_speed);
 }
 
-void create3_navigate_to(const Create3Pose pose, const float max_linear_speed, const float max_angular_speed, const int achieve_goal_heading)
+void create3_navigate_to_pose(const Create3Pose pose, const float max_linear_speed, const float max_angular_speed, const int achieve_goal_heading)
 {
   std::lock_guard<std::mutex> lock(global_client_mut);
   if (!global_client)
@@ -286,6 +286,41 @@ void create3_navigate_to(const Create3Pose pose, const float max_linear_speed, c
   }
 
   global_client->navigateTo(pose, max_linear_speed, max_angular_speed, achieve_goal_heading);
+}
+
+void create3_navigate_to_position(
+  const double x,
+  const double y,
+  const float max_linear_speed,
+  const float max_angular_speed
+)
+{
+  std::lock_guard<std::mutex> lock(global_client_mut);
+  if (!global_client)
+  {
+    std::cerr << __func__ << ": not connected" << std::endl;
+    return;
+  }
+
+  global_client->navigateTo(x, y, max_linear_speed, max_angular_speed);
+}
+
+void create3_navigate_to_position_with_heading(
+  const double x,
+  const double y,
+  const double theta,
+  const float max_linear_speed,
+  const float max_angular_speed
+)
+{
+  std::lock_guard<std::mutex> lock(global_client_mut);
+  if (!global_client)
+  {
+    std::cerr << __func__ << ": not connected" << std::endl;
+    return;
+  }
+
+  global_client->navigateTo(x, y, theta, max_linear_speed, max_angular_speed);
 }
 
 void create3_follow_wall(const Create3Follow follow, const float max_seconds)

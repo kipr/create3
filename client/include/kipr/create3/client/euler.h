@@ -16,6 +16,7 @@ typedef struct
 } Create3Euler;
 
 Create3Euler create3_euler_from_quaternion(const Create3Quaternion quaternion);
+Create3Quaternion create3_euler_to_quaternion(const Create3Euler euler);
 
 #ifdef __cplusplus
 }

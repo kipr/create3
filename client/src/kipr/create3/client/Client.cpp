@@ -5,6 +5,7 @@
 #include <optional>
 #include <chrono>
 #include <iostream>
+#include <cmath>
 
 #include "kipr/create3/client/ClientImpl.hpp"
 
@@ -105,17 +106,40 @@ void Client::undock()
 
 void Client::driveStraight(const float distance, const float max_linear_speed)
 {
+  wait();
 
+  auto request = impl_->create3Client().driveStraightRequest();
+  request.setDistance(distance);
+  request.setMaxLinearSpeed(max_linear_speed);
+
+  std::lock_guard<std::mutex> lock(wait_mut_);
+  impl_->last_waitable = request.send().ignoreResult();
 }
 
 void Client::driveArc(const Direction direction, const float radius, const float angle, const float max_linear_speed)
 {
+  wait();
 
+  auto request = impl_->create3Client().driveArcRequest();
+  request.setDirection(static_cast<int8_t>(direction));
+  request.setRadius(radius);
+  request.setAngle(angle);
+  request.setMaxLinearSpeed(max_linear_speed);
+
+  std::lock_guard<std::mutex> lock(wait_mut_);
+  impl_->last_waitable = request.send().ignoreResult();
 }
 
 void Client::rotate(const float angle, const float max_angular_speed)
 {
+  wait();
 
+  auto request = impl_->create3Client().rotateRequest();
+  request.setAngle(angle);
+  request.setMaxAngularSpeed(max_angular_speed);
+
+  std::lock_guard<std::mutex> lock(wait_mut_);
+  impl_->last_waitable = request.send().ignoreResult();
 }
 
 void Client::navigateTo(const Pose &pose, const float max_linear_speed, const float max_angular_speed, const bool achieve_goal_heading)
@@ -144,9 +168,32 @@ void Client::navigateTo(const Pose &pose, const float max_linear_speed, const fl
   impl_->last_waitable = request.send().ignoreResult();
 }
 
+void Client::navigateTo(const double x, const double y, const double theta, const float max_linear_speed, const float max_angular_speed)
+{
+  navigateTo(Pose {
+    .position = { .x = x, .y = y, .z = 0.0 },
+    .orientation = { .x = 0.0, .y = 0.0, .z = std::sin(theta / 2.0), .w = std::cos(theta / 2.0) }
+  }, max_linear_speed, max_angular_speed, true);
+}
+
+void Client::navigateTo(const double x, const double y, const float max_linear_speed, const float max_angular_speed)
+{
+  navigateTo(Pose {
+    .position = { .x = x, .y = y, .z = 0.0 },
+    .orientation = { .x = 0.0, .y = 0.0, .z = 0.0, .w = 1.0 }
+  }, max_linear_speed, max_angular_speed, false);
+}
+
 void Client::followWall(const Follow follow, const float max_seconds)
 {
+  wait();
 
+  auto request = impl_->create3Client().followWallRequest();
+  request.setFollow(static_cast<int8_t>(follow));
+  request.setMaxSeconds(max_seconds);
+
+  std::lock_guard<std::mutex> lock(wait_mut_);
+  impl_->last_waitable = request.send().ignoreResult();
 }
 
 Odometry Client::getOdometry() const
