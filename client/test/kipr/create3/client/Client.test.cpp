@@ -4,6 +4,7 @@
 #include "kipr/create3/create3.capnp.h"
 #include "kipr/create3/client/test_utils.hpp"
 
+using namespace kipr::create3;
 using namespace kipr::create3::client;
 
 TEST(Client, setVelocity) {
@@ -17,10 +18,9 @@ TEST(Client, setVelocity) {
 
     kj::Promise<void> setVelocity(SetVelocityContext context) override
     {
-      auto twist = context.getParams().getTwist();
-      linear_x_ = twist.getLinearX();
-      angular_z_ = twist.getAngularZ();
-
+      auto params = context.getParams(); 
+      linear_x_ = params.getVelocity().getLinearX();
+      angular_z_ = params.getVelocity().getAngularZ();
 
       return kj::READY_NOW;
     }
@@ -33,7 +33,7 @@ TEST(Client, setVelocity) {
   double linear_x = 0.0;
   double angular_z = 0.0;
   
-  mockClient(kj::heap<Server>(linear_x, angular_z)).setVelocity(1.0, 2.0);
+  mockClient(kj::heap<Server>(linear_x, angular_z)).setVelocity({ .linear_x = 1.0, .angular_z = 2.0 });
 
   EXPECT_EQ(linear_x, 1.0);
   EXPECT_EQ(angular_z, 2.0);

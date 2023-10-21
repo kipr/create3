@@ -24,6 +24,8 @@ namespace client
     kj::EventLoop loop_;
     kj::WaitScope wait_;
     Create3::Client create3_client_;
+
+    std::optional<kj::Promise<void>> last_waitable_; 
   }; 
 }
 }

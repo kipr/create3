@@ -3,6 +3,9 @@
 #include <rclcpp/rclcpp.hpp>
 
 #include <std_msgs/msg/string.hpp>
+#include <geometry_msgs/msg/twist.hpp>
+
+#include <irobot_create_msgs/msg/wheel_vels.hpp>
 
 using namespace std::chrono_literals;
 
@@ -10,24 +13,39 @@ class Create3 : public rclcpp::Node
 {
 public:
   Create3()
-    : Node("minimal_publisher")
+    : Node("create3")
   {
-    publisher_ = this->create_publisher<std_msgs::msg::String>("topic", 10);
+    cmd_vel_pub_ = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
+
     timer_ = this->create_wall_timer(
-      500ms, std::bind(&Create3::timer_callback, this));
+      1000ms, std::bind(&Create3::timer_callback, this));
   }
 
 private:
+  bool stop_go = false;
+
   void timer_callback()
   {
-    auto message = std_msgs::msg::String();
-    message.data = "Hello, world! " + std::to_string(count_++);
-    RCLCPP_INFO(this->get_logger(), "Publishing: '%s'", message.data.c_str());
-    publisher_->publish(message);
+    stop_go = !stop_go;
+    
+    geometry_msgs::msg::Twist msg;
+    if (stop_go)
+    {
+      msg.linear.x = 0.1;
+      msg.angular.z = 0.1;
+    }
+    else
+    {
+      msg.linear.x = 0.0;
+      msg.angular.z = 0.0;
+    }
+
+    RCLCPP_INFO(this->get_logger(), "Publishing: '%f'", msg.linear.x);
+    cmd_vel_pub_->publish(msg);
   }
   
   rclcpp::TimerBase::SharedPtr timer_;
-  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
+  rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub_;
   size_t count_ = 1;
 };
 

@@ -3,6 +3,14 @@
 #include <cstdint>
 #include <string_view>
 #include <memory>
+#include <mutex>
+#include <chrono>
+
+#include "AudioNote.hpp"
+#include "Odometry.hpp"
+#include "Twist.hpp"
+#include "Follow.hpp"
+#include "Direction.hpp"
 
 namespace kipr
 {
@@ -12,6 +20,13 @@ namespace client
 {
   struct ClientImpl;
 
+  template<typename T>
+  struct Stamped
+  {
+    std::chrono::time_point at;
+    T value;
+  };
+
   class Client
   {
   public:
@@ -20,11 +35,33 @@ namespace client
     ~Client();
 
     bool isConnected();
+    bool isDocked();
 
-    void setVelocity(const double linear_x, const double angular_z);
+    void wait();
+    void executeNextCommandImmediately();
+
+    void setVelocity(const Twist &velocity);
+    void playAudio(const AudioNote *const notes, const std::size_t count, const bool overwrite = false);
+
+    void dock();
+    void undock();
+
+    void driveStraight(const float distance, const float max_linear_speed);
+    void driveArc(const Direction direction, const float radius, const float angle, const float max_linear_speed);
+    void rotate(const float angle, const float max_angular_speed);
+    void navigateTo(const Pose &pose, const float max_linear_speed, const float max_angular_speed, const bool achieve_goal_heading = true);
+    void followWall(const Follow follow, const float max_seconds);
+
+
+    Odometry getOdometry() const;
 
   private:
     std::unique_ptr<ClientImpl> impl_;
+
+    mutable std::mutex wait_mut_;
+
+    mutable std::mutex latest_odometry_mut_;
+    mutable std::optional<Stamped<Odometry>> latest_odometry_;
   };
 }
 }
