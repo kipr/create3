@@ -4,6 +4,12 @@ add_library(${CMAKE_PROJECT_NAME}_common STATIC ${SCHEMA_SOURCES} ${SCHEMA_HEADE
 target_link_libraries(${CMAKE_PROJECT_NAME}_common PUBLIC CapnProto::capnp)
 target_include_directories(${CMAKE_PROJECT_NAME}_common PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/schema)
 
+set_target_properties(
+  ${CMAKE_PROJECT_NAME}_common
+  PROPERTIES
+  POSITION_INDEPENDENT_CODE ON
+)
+
 install(TARGETS ${CMAKE_PROJECT_NAME}_common
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
