@@ -11,6 +11,7 @@
 #include <irobot_create_msgs/action/dock.hpp>
 #include <irobot_create_msgs/action/undock.hpp>
 #include <irobot_create_msgs/action/navigate_to_position.hpp>
+#include <irobot_create_msgs/action/rotate_angle.hpp>
 
 #include <kipr/create3/create3.capnp.h>
 #include <capnp/ez-rpc.h>
@@ -109,6 +110,7 @@ public:
     , dock(adaptAction(rclcpp_action::create_client<create_action::Dock>(this, "dock")))
     , undock(adaptAction(rclcpp_action::create_client<create_action::Undock>(this, "undock")))
     , navigate_to(adaptAction(rclcpp_action::create_client<create_action::NavigateToPosition>(this, "navigate_to_position")))
+    , rotate(adaptAction(rclcpp_action::create_client<create_action::RotateAngle>(this, "rotate_angle")))
   {
   }
 
@@ -121,6 +123,7 @@ public:
   const AdaptedAction<create_action::Dock> dock;
   const AdaptedAction<create_action::Undock> undock;
   const AdaptedAction<create_action::NavigateToPosition> navigate_to;
+  const AdaptedAction<create_action::RotateAngle> rotate;
 
   const nav_msgs::msg::Odometry::ConstSharedPtr &getOdometry() const
   {
@@ -197,6 +200,17 @@ public:
     goal.achieve_goal_heading = params.getAchieveGoalHeading();
 
     return node_->navigate_to(goal).ignoreResult();
+  }
+
+  kj::Promise<void> rotate(RotateContext context) override
+  {
+    auto params = context.getParams();
+
+    create_action::RotateAngle::Goal goal;
+    goal.angle = params.getAngle();
+    goal.max_rotation_speed = params.getMaxAngularSpeed();
+
+    return node_->rotate(goal).ignoreResult();
   }
 
   kj::Promise<void> getOdometry(GetOdometryContext context) override
