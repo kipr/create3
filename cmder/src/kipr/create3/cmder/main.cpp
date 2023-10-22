@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
   double rotate_angle = 0.0;
   double rotate_max_angular_speed = 0.0;
 
-  int8_t drive_straight_direction = 0;
+  std::string drive_straight_direction = 0;
   double drive_straight_distance = 0.0;
   double drive_straight_max_linear_speed = 0.0;
 
