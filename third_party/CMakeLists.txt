@@ -18,7 +18,7 @@ FetchContent_Declare(googletest
 )
 
 # For Windows: Prevent overriding the parent project's compiler/linker settings
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+set(gtest_force_shared_crt OFF CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(capnproto clipp googletest)
 
