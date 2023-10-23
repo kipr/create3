@@ -263,8 +263,9 @@ void create3_drive_arc_degrees(const float radius, const float angle, const floa
   }
 
   const Create3Direction direction = angle > 0.0 ? Create3Direction::Create3DirectionForward : Create3Direction::Create3DirectionBackward;
+  const float angle_rad = angle * M_PI / 180.0;
 
-  global_client->driveArc(direction, radius, angle, max_linear_speed);
+  global_client->driveArc(direction, radius, angle_rad, max_linear_speed);
 }
 
 void create3_drive_arc_radians(const float radius, const float angle, const float max_linear_speed)
