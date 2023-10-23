@@ -13,8 +13,9 @@ int main()
 
   printf("Rotate at 0.5 m/s for 1 second...\n");
 
-  // Move forward at 0.5 m/s for 1 second
-  create3_rotate(1.57, 0.5);
+  // Rotate at 90 deg/s (PI/2 rad/s) to 90 degrees (PI/2 radians)
+  create3_rotate_degrees(90,90);
+  create3_rotate_radians(1.57, 1.57);
 
   // Wait for 1 second
   create3_wait();

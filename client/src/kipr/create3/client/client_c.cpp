@@ -4,6 +4,7 @@
 #include <mutex>
 #include <thread>
 #include <iostream>
+#include <cmath>
 
 namespace kipr
 {
@@ -252,7 +253,7 @@ void create3_drive_straight(const float distance, const float max_linear_speed)
   global_client->driveStraight(distance, max_linear_speed);
 }
 
-void create3_drive_arc(const Create3Direction direction, const float radius, const float angle, const float max_linear_speed)
+void create3_drive_arc_degrees(const float radius, const float angle, const float max_linear_speed)
 {
   std::lock_guard<std::mutex> lock(global_client_mut);
   if (!global_client)
@@ -261,10 +262,41 @@ void create3_drive_arc(const Create3Direction direction, const float radius, con
     return;
   }
 
+  const Create3Direction direction = angle > 0.0 ? Create3Direction::Create3DirectionForward : Create3Direction::Create3DirectionBackward;
+
   global_client->driveArc(direction, radius, angle, max_linear_speed);
 }
 
-void create3_rotate(const float angle, const float max_angular_speed)
+void create3_drive_arc_radians(const float radius, const float angle, const float max_linear_speed)
+{
+  std::lock_guard<std::mutex> lock(global_client_mut);
+  if (!global_client)
+  {
+    std::cerr << __func__ << ": not connected" << std::endl;
+    return;
+  }
+
+  const Create3Direction direction = angle > 0.0 ? Create3Direction::Create3DirectionForward : Create3Direction::Create3DirectionBackward;
+
+  global_client->driveArc(direction, radius, angle, max_linear_speed);
+}
+
+void create3_rotate_degrees(const float angle, const float max_angular_speed)
+{
+  std::lock_guard<std::mutex> lock(global_client_mut);
+  if (!global_client)
+  {
+    std::cerr << __func__ << ": not connected" << std::endl;
+    return;
+  }
+
+  const float angle_rad = angle * M_PI / 180.0;
+  const float max_angular_speed_rad = max_angular_speed * M_PI / 180.0;
+
+  global_client->rotate(angle_rad, max_angular_speed_rad);
+}
+
+void create3_rotate_radians(const float angle, const float max_angular_speed)
 {
   std::lock_guard<std::mutex> lock(global_client_mut);
   if (!global_client)

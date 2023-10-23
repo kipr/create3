@@ -7,11 +7,17 @@
 #include <geometry_msgs/msg/twist.hpp>
 #include <nav_msgs/msg/odometry.hpp>
 
-#include <irobot_create_msgs/msg/wheel_vels.hpp>
+#include <irobot_create_msgs/action/audio_note_sequence.hpp>
 #include <irobot_create_msgs/action/dock.hpp>
-#include <irobot_create_msgs/action/undock.hpp>
+#include <irobot_create_msgs/action/drive_arc.hpp>
+#include <irobot_create_msgs/action/drive_distance.hpp>
+#include <irobot_create_msgs/action/led_animation.hpp>
 #include <irobot_create_msgs/action/navigate_to_position.hpp>
 #include <irobot_create_msgs/action/rotate_angle.hpp>
+#include <irobot_create_msgs/action/undock.hpp>
+#include <irobot_create_msgs/action/wall_follow.hpp>
+
+#include <irobot_create_msgs/msg/wheel_vels.hpp>
 
 #include <kipr/create3/create3.capnp.h>
 #include <capnp/ez-rpc.h>
@@ -91,8 +97,8 @@ AdaptedAction<T> adaptAction(const typename std::shared_ptr<rclcpp_action::Clien
   };
 }
 
-namespace create_msg = irobot_create_msgs::msg;
 namespace create_action = irobot_create_msgs::action;
+namespace create_msg = irobot_create_msgs::msg;
 
 rclcpp_action::Client<create_action::Dock>::WrappedResult dock;
 
@@ -101,16 +107,19 @@ class Create3Node : public rclcpp::Node
 public:
   Create3Node()
     : Node("create3")
+    , dock(adaptAction(rclcpp_action::create_client<create_action::Dock>(this, "dock")))
+    , drive_arc(adaptAction(rclcpp_action::create_client<create_action::DriveArc>(this, "drive_arc")))
+    , navigate_to(adaptAction(rclcpp_action::create_client<create_action::NavigateToPosition>(this, "navigate_to_position")))
+    , rotate(adaptAction(rclcpp_action::create_client<create_action::RotateAngle>(this, "rotate_angle")))
+    , undock(adaptAction(rclcpp_action::create_client<create_action::Undock>(this, "undock")))
+
     , cmd_vel_pub_(create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10))
+
     , odom_sub_(create_subscription<nav_msgs::msg::Odometry>(
         "odom",
         rclcpp::QoS(rclcpp::KeepLast(10), rmw_qos_profile_sensor_data),
         std::bind(&Create3Node::onOdom, this, std::placeholders::_1)
       ))
-    , dock(adaptAction(rclcpp_action::create_client<create_action::Dock>(this, "dock")))
-    , undock(adaptAction(rclcpp_action::create_client<create_action::Undock>(this, "undock")))
-    , navigate_to(adaptAction(rclcpp_action::create_client<create_action::NavigateToPosition>(this, "navigate_to_position")))
-    , rotate(adaptAction(rclcpp_action::create_client<create_action::RotateAngle>(this, "rotate_angle")))
   {
   }
 
@@ -121,9 +130,10 @@ public:
   }
 
   const AdaptedAction<create_action::Dock> dock;
-  const AdaptedAction<create_action::Undock> undock;
+  const AdaptedAction<create_action::DriveArc> drive_arc;
   const AdaptedAction<create_action::NavigateToPosition> navigate_to;
   const AdaptedAction<create_action::RotateAngle> rotate;
+  const AdaptedAction<create_action::Undock> undock;
 
   const nav_msgs::msg::Odometry::ConstSharedPtr &getOdometry() const
   {
@@ -175,9 +185,17 @@ public:
     return node_->dock(create_action::Dock::Goal {}).ignoreResult();
   }
 
-  kj::Promise<void> undock(UndockContext context) override
+  kj::Promise<void> driveArc(DriveArcContext context) override
   {
-    return node_->undock(create_action::Undock::Goal {}).ignoreResult();
+    auto params = context.getParams();
+
+    create_action::DriveArc::Goal goal;
+    goal.translate_direction = params.getDirection();
+    goal.angle = params.getAngle();
+    goal.radius = params.getRadius();
+    goal.max_translation_speed = params.getMaxLinearSpeed();
+
+    return node_->drive_arc(goal).ignoreResult();
   }
 
   kj::Promise<void> navigateTo(NavigateToContext context) override
@@ -211,6 +229,11 @@ public:
     goal.max_rotation_speed = params.getMaxAngularSpeed();
 
     return node_->rotate(goal).ignoreResult();
+  }
+
+  kj::Promise<void> undock(UndockContext context) override
+  {
+    return node_->undock(create_action::Undock::Goal {}).ignoreResult();
   }
 
   kj::Promise<void> getOdometry(GetOdometryContext context) override

@@ -173,20 +173,91 @@ void create3_audio_overwrite(const Create3AudioNote *const notes, const unsigned
  */
 void create3_audio_append(const Create3AudioNote *const notes, const unsigned count);
 
+/**
+ * @brief Dock the iRobot Create 3 on the closest Home Base.
+ * @details The iRobot Create 3 must be undocked to dock.
+ * 
+ * @example `create3_dock();`
+ */
 void create3_dock();
 
+/**
+ * @brief Undock the iRobot Create 3 from the Home Base.
+ * @details The iRobot Create 3 must be docked to undock. When undocking the iRobot Create 3 will drive backwards and turn 180 degrees.
+ * 
+ * @example `create3_undock();`
+ */
 void create3_undock();
 
-void create3_drive_straight(const float distance, const float max_linear_speed);
-
-void create3_drive_arc(
-  const Create3Direction direction,
+/**
+ * @brief Drive the iRobot Create 3 in an arc.
+ * @details The iRobot Create 3 will drive in an arc with the given radius and angle at the given maximum linear speed. A negative angle will drive the iRobot Create 3 clockwise and a positive angle will drive the iRobot Create 3 counter-clockwise.
+ * 
+ * @param radius The radius of the arc in meters.
+ * @param angle The angle of the arc in degrees.
+ * @param max_linear_speed The maximum linear speed in meters per second. Max with no safety overrides is 0.306 m/s.
+ * 
+ * @example `create3_drive_arc_degrees(0.5, 90, 1.0); // Drive in a 0.5 meter radius arc counter-clockwise for 90 degrees at 1 m/s.`
+ */
+void create3_drive_arc_degrees(
   const float radius,
   const float angle,
   const float max_linear_speed
 );
-    
-void create3_rotate(
+
+/**
+ * @brief Drive the iRobot Create 3 in an arc.
+ * @details The iRobot Create 3 will drive in an arc with the given radius and angle at the given maximum linear speed. A negative angle will drive the iRobot Create 3 clockwise and a positive angle will drive the iRobot Create 3 counter-clockwise.
+ * 
+ * @param radius The radius of the arc in meters.
+ * @param angle The angle of the arc in radians.
+ * @param max_linear_speed The maximum linear speed in meters per second. Max with no safety overrides is 0.306 m/s.
+ * 
+ * @example `create3_drive_arc_radians(0.5, 1.57, 1.0); // Drive in a 0.5 meter radius arc counter-clockwise for PI/2 radians at 1 m/s.`
+ */
+void create3_drive_arc_radians(
+  const float radius,
+  const float angle,
+  const float max_linear_speed
+);
+
+/**
+ * @brief Drive the iRobot Create 3 in a straight line.
+ * @details The iRobot Create 3 will drive in a straight line for the given distance at the given maximum linear speed. A negative distance will drive the iRobot Create 3 backwards and a positive distance will drive the iRobot Create 3 forwards.
+ * 
+ * @param distance The distance to drive in meters.
+ * @param max_linear_speed The maximum linear speed in meters per second. Max with no safety overrides is 0.306 m/s.
+ * 
+ * @example `create3_drive_straight(1.0, 0.5); // Drive forward for 1 meter at 0.5 m/s.`
+ * @example `create3_drive_straight(-1.0, 0.5); // Drive backward for 1 meter at 0.5 m/s.`
+ */
+void create3_drive_straight(
+  const float distance, 
+  const float max_linear_speed
+);
+
+/**
+ * @brief Rotate the iRobot Create 3 in place.
+ * @details The iRobot Create 3 will rotate in place for the given angle in degrees at the given maximum angular speed. A negative angle will rotate the iRobot Create 3 clockwise and a positive angle will rotate the iRobot Create 3 counter-clockwise.
+ * 
+ * @param angle The angle to rotate in degrees.
+ * @param max_angular_speed The maximum angular speed in degrees per second. Max with no safety overrides is 151 deg/s.
+ * 
+ */  
+void create3_rotate_degrees(
+  const float angle,
+  const float max_angular_speed
+);
+
+/**
+ * @brief Rotate the iRobot Create 3 in place.
+ * @details The iRobot Create 3 will rotate in place for the given angle in radians at the given maximum angular speed. A negative angle will rotate the iRobot Create 3 clockwise and a positive angle will rotate the iRobot Create 3 counter-clockwise.
+ * 
+ * @param angle The angle to rotate in radians.
+ * @param max_angular_speed The maximum angular speed in radians per second. Max with no safety overrides is 2.64 rad/s.
+ * 
+ */
+void create3_rotate_radians(
   const float angle,
   const float max_angular_speed
 );
