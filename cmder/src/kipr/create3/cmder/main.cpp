@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
       (
         (command("set_velocity") >> set(mode, Mode::SetVelocity), value("linear_x") >> set(linear_x), value("angular_z") >> set(angular_z)) |
         (command("undock") >> set(mode, Mode::Undock)) |
-        (command("dock") >> set(mode, Mode::Undock)) |
+        (command("dock") >> set(mode, Mode::Dock)) |
         (command("odometry") >> set(mode, Mode::Odometry)) |
         (
           command("navigate_to") >> set(mode, Mode::NavigateTo),
@@ -199,6 +199,12 @@ int main(int argc, char *argv[])
       }
       break;
     }
+    case Mode::Rotate:
+      init_client().rotate(
+        rotate_angle, 
+        rotate_max_angular_speed
+      );
+      break;
   }
   
   return EXIT_SUCCESS;
