@@ -84,6 +84,51 @@ void Client::playAudio(const AudioNote *const notes, const std::size_t count, co
   impl_->last_waitable = request.send().ignoreResult();
 }
 
+void Client::ledAnimation(const LedAnimationType animation_type, const Lightring lightring, const double max_runtime)
+{
+  wait();
+
+  auto request = impl_->create3Client().ledAnimationRequest();
+  request.setAnimationType(static_cast<int8_t>(animation_type));
+
+  auto lightringBuilder = request.initLightring();
+
+  auto led0Builder = lightringBuilder.initLed0();
+  led0Builder.setR(lightring.led0.r);
+  led0Builder.setG(lightring.led0.g);
+  led0Builder.setB(lightring.led0.b);
+
+  auto led1Builder = lightringBuilder.initLed1();
+  led1Builder.setR(lightring.led1.r);
+  led1Builder.setG(lightring.led1.g);
+  led1Builder.setB(lightring.led1.b);
+
+  auto led2Builder = lightringBuilder.initLed2();
+  led2Builder.setR(lightring.led2.r);
+  led2Builder.setG(lightring.led2.g);
+  led2Builder.setB(lightring.led2.b);
+
+  auto led3Builder = lightringBuilder.initLed3();
+  led3Builder.setR(lightring.led3.r);
+  led3Builder.setG(lightring.led3.g);
+  led3Builder.setB(lightring.led3.b);
+
+  auto led4Builder = lightringBuilder.initLed4();
+  led4Builder.setR(lightring.led4.r);
+  led4Builder.setG(lightring.led4.g);
+  led4Builder.setB(lightring.led4.b);
+
+  auto led5Builder = lightringBuilder.initLed5();
+  led5Builder.setR(lightring.led5.r);
+  led5Builder.setG(lightring.led5.g);
+  led5Builder.setB(lightring.led5.b);
+  
+  request.setMaxRuntime(max_runtime);
+
+  std::lock_guard<std::mutex> lock(wait_mut_);
+  impl_->last_waitable = request.send().ignoreResult();
+}
+
 void Client::dock()
 {
   wait();

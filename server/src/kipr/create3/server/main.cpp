@@ -109,6 +109,7 @@ public:
     : Node("create3")
     , dock(adaptAction(rclcpp_action::create_client<create_action::Dock>(this, "dock")))
     , drive_arc(adaptAction(rclcpp_action::create_client<create_action::DriveArc>(this, "drive_arc")))
+    , led_animation(adaptAction(rclcpp_action::create_client<create_action::LedAnimation>(this, "led_animation")))
     , navigate_to(adaptAction(rclcpp_action::create_client<create_action::NavigateToPosition>(this, "navigate_to_position")))
     , rotate(adaptAction(rclcpp_action::create_client<create_action::RotateAngle>(this, "rotate_angle")))
     , undock(adaptAction(rclcpp_action::create_client<create_action::Undock>(this, "undock")))
@@ -131,6 +132,7 @@ public:
 
   const AdaptedAction<create_action::Dock> dock;
   const AdaptedAction<create_action::DriveArc> drive_arc;
+  const AdaptedAction<create_action::LedAnimation> led_animation;
   const AdaptedAction<create_action::NavigateToPosition> navigate_to;
   const AdaptedAction<create_action::RotateAngle> rotate;
   const AdaptedAction<create_action::Undock> undock;
@@ -196,6 +198,25 @@ public:
     goal.max_translation_speed = params.getMaxLinearSpeed();
 
     return node_->drive_arc(goal).ignoreResult();
+  }
+
+  kj::Promise<void> ledAnimation(LedAnimationContext context) override
+  {
+    auto params = context.getParams();
+
+    create_action::LedAnimation::Goal goal;
+    goal.animation_type = params.getAnimationType();
+    goal.lightring = {
+      params.getLightring().led0,
+      params.getLightring().led1,
+      params.getLightring().led2,
+      params.getLightring().led3,
+      params.getLightring().led4,
+      params.getLightring().led5,
+    };
+    goal.max_runtime = params.getMaxRuntime();
+
+    return node_->led_animation(goal).ignoreResult();
   }
 
   kj::Promise<void> navigateTo(NavigateToContext context) override
