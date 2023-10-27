@@ -210,29 +210,29 @@ public:
     goal.animation_type = params.getAnimationType();
 
     irobot_create_msgs::msg::LedColor led_colors[6];
-    led_colors[0].red = light_ring.getLed0().getR();
-    led_colors[0].green = light_ring.getLed0().getG();
-    led_colors[0].blue = light_ring.getLed0().getB();
+    led_colors[0].red = lightring.getLed0().getR();
+    led_colors[0].green = lightring.getLed0().getG();
+    led_colors[0].blue = lightring.getLed0().getB();
 
-    led_colors[1].red = light_ring.getLed1().getR();
-    led_colors[1].green = light_ring.getLed1().getG();
-    led_colors[1].blue = light_ring.getLed1().getB();
+    led_colors[1].red = lightring.getLed1().getR();
+    led_colors[1].green = lightring.getLed1().getG();
+    led_colors[1].blue = lightring.getLed1().getB();
 
-    led_colors[2].red = light_ring.getLed2().getR();
-    led_colors[2].green = light_ring.getLed2().getG();
-    led_colors[2].blue = light_ring.getLed2().getB();
+    led_colors[2].red = lightring.getLed2().getR();
+    led_colors[2].green = lightring.getLed2().getG();
+    led_colors[2].blue = lightring.getLed2().getB();
 
-    led_colors[3].red = light_ring.getLed3().getR();
-    led_colors[3].green = light_ring.getLed3().getG();
-    led_colors[3].blue = light_ring.getLed3().getB();
+    led_colors[3].red = lightring.getLed3().getR();
+    led_colors[3].green = lightring.getLed3().getG();
+    led_colors[3].blue = lightring.getLed3().getB();
 
-    led_colors[4].red = light_ring.getLed4().getR();
-    led_colors[4].green = light_ring.getLed4().getG();
-    led_colors[4].blue = light_ring.getLed4().getB();
+    led_colors[4].red = lightring.getLed4().getR();
+    led_colors[4].green = lightring.getLed4().getG();
+    led_colors[4].blue = lightring.getLed4().getB();
 
-    led_colors[5].red = light_ring.getLed5().getR();
-    led_colors[5].green = light_ring.getLed5().getG();
-    led_colors[5].blue = light_ring.getLed5().getB();
+    led_colors[5].red = lightring.getLed5().getR();
+    led_colors[5].green = lightring.getLed5().getG();
+    led_colors[5].blue = lightring.getLed5().getB();
 
     goal.lightring = led_colors;
 
