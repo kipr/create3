@@ -265,7 +265,7 @@ void create3_drive_straight(const float distance, const float max_linear_speed)
     return;
   }
 
-  global_client->driveStraight(distance, max_linear_speed);
+  global_client->driveDistance(distance, max_linear_speed);
 }
 
 void create3_drive_arc_degrees(const float radius, const float angle, const float max_linear_speed)

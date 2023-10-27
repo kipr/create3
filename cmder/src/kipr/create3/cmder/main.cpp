@@ -185,7 +185,7 @@ int main(int argc, char *argv[])
     case Mode::DriveStraight:
     {
       auto client = init_client();
-      client.driveStraight(
+      client.driveDistance(
         drive_straight_distance,
         drive_straight_max_linear_speed
       );

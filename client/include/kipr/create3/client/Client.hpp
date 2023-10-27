@@ -53,7 +53,7 @@ namespace client
     void dock();
     void undock();
 
-    void driveStraight(const float distance, const float max_linear_speed);
+    void driveDistance(const float distance, const float max_linear_speed);
     void driveArc(const Direction direction, const float radius, const float angle, const float max_linear_speed);
     void ledAnimation(const LedAnimationType animation_type, const Lightring lightring, Duration duration);
     void rotate(const float angle, const float max_angular_speed);

@@ -151,11 +151,11 @@ void Client::undock()
   impl_->last_waitable = request.send().ignoreResult();
 }
 
-void Client::driveStraight(const float distance, const float max_linear_speed)
+void Client::driveDistance(const float distance, const float max_linear_speed)
 {
   wait();
 
-  auto request = impl_->create3Client().driveStraightRequest();
+  auto request = impl_->create3Client().driveDistanceRequest();
   request.setDistance(distance);
   request.setMaxLinearSpeed(max_linear_speed);
 

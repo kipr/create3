@@ -59,7 +59,7 @@ interface Create3 {
   dock @3 ();
   undock @4 ();
 
-  driveStraight @5 (distance :Float32, maxLinearSpeed :Float32);
+  driveDistance @5 (distance :Float32, maxLinearSpeed :Float32);
   driveArc @6 (direction :Int8, radius :Float32, angle :Float32, maxLinearSpeed :Float32);
   ledAnimation @7 (animationType: Int8, lightring: Lightring, duration: Duration);
   rotate @8 (angle :Float32, maxAngularSpeed :Float32);
