@@ -4,9 +4,9 @@
 
 int main()
 {
-  printf("Connecting to Create3...\n");
+  printf("Connecting to Create3 robot...\n");
 
-  create3_connect();
+  create3_connect_manual("192.168.125.1", 50051);
   
   printf("Connected!\n");
 
