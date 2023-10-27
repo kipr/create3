@@ -232,8 +232,7 @@ public:
     goal.lightring[5].green = lightring.getLed5().getG();
     goal.lightring[5].blue = lightring.getLed5().getB();
 
-    goal.max_runtime.seconds = params.getDuration().getSeconds();
-    goal.max_runtime.nanoseconds = params.getDuration().getNanoseconds();
+    goal.max_runtime = rclcpp::Duration(params.getDuration().getSeconds(), params.getDuration().getNanoseconds());
 
     return node_->led_animation(goal).ignoreResult();
   }
