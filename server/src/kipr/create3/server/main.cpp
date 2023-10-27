@@ -234,7 +234,7 @@ public:
     led_colors[5].green = lightring.getLed5().getG();
     led_colors[5].blue = lightring.getLed5().getB();
 
-    goal.lightring = led_colors;
+    goal.lightring.leds = led_colors;
 
     goal.max_runtime = rclcpp::Duration(params.getDuration().getSeconds(), params.getDuration().getNanoseconds());
 
