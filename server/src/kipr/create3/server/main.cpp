@@ -209,7 +209,7 @@ public:
     create_action::LedAnimation::Goal goal;
     goal.animation_type = params.getAnimationType();
 
-    irobot_create_msgs::msg::LedColor led_colors[6];
+    std::array<irobot_create_msgs::msg::LedColor, 6> led_colors;
     led_colors[0].red = lightring.getLed0().getR();
     led_colors[0].green = lightring.getLed0().getG();
     led_colors[0].blue = lightring.getLed0().getB();
