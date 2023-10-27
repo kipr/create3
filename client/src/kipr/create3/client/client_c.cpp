@@ -2,6 +2,7 @@
 #include "kipr/create3/client/client.h"
 #include "kipr/create3/client/Quaternion.hpp"
 #include "kipr/create3/client/euler.h"
+#include "kipr/create3/client/Duration.hpp"
 #include "kipr/create3/client/Vector3.hpp"
 #include "kipr/create3/client/LedAnimationType.hpp"
 #include "kipr/create3/client/Lightring.hpp"
@@ -227,7 +228,8 @@ void create3_audio_append(const Create3AudioNote *const notes, const unsigned co
 void create3_led_animation(const Create3LedAnimationType animation_type, const Create3Lightring lightring, const double max_runtime)
 {
   std::lock_guard<std::mutex> lock(global_client_mut);
-  global_client->ledAnimation(animation_type, lightring, max_runtime);
+  Duration duration = create3_duration_from_double(max_runtime);
+  global_client->ledAnimation(animation_type, lightring, duration);
 }
 
 void create3_dock()

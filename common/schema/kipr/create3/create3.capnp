@@ -28,6 +28,11 @@ struct Lightring {
   led5 @5 :LedColor;
 }
 
+struct Duration {
+  seconds @0 :Int32;
+  nanoseconds @1 :UInt32;
+}
+
 struct Quaternion {
   x @0 :Float64;
   y @1 :Float64;
@@ -56,7 +61,7 @@ interface Create3 {
 
   driveStraight @5 (distance :Float32, maxLinearSpeed :Float32);
   driveArc @6 (direction :Int8, radius :Float32, angle :Float32, maxLinearSpeed :Float32);
-  ledAnimation @7 (animationType: Int8, lightring: Lightring, maxRuntime :Float32);
+  ledAnimation @7 (animationType: Int8, lightring: Lightring, duration: Duration);
   rotate @8 (angle :Float32, maxAngularSpeed :Float32);
   navigateTo @9 (pose :Pose, maxLinearSpeed :Float32, maxAngularSpeed :Float32, achieveGoalHeading :Bool);
   followWall @10 (follow :Int8, maxSeconds :Float32);

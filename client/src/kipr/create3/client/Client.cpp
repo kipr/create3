@@ -84,7 +84,7 @@ void Client::playAudio(const AudioNote *const notes, const std::size_t count, co
   impl_->last_waitable = request.send().ignoreResult();
 }
 
-void Client::ledAnimation(const LedAnimationType animation_type, const Lightring lightring, const double max_runtime)
+void Client::ledAnimation(const LedAnimationType animation_type, const Lightring lightring, const Duration duration)
 {
   wait();
 
@@ -122,8 +122,10 @@ void Client::ledAnimation(const LedAnimationType animation_type, const Lightring
   led5Builder.setR(lightring.led5.r);
   led5Builder.setG(lightring.led5.g);
   led5Builder.setB(lightring.led5.b);
-  
-  request.setMaxRuntime(max_runtime);
+
+  auto durationBuilder = request.initDuration();
+  durationBuilder.setSeconds(duration.seconds);
+  durationBuilder.setNanoseconds(duration.nanoseconds);
 
   std::lock_guard<std::mutex> lock(wait_mut_);
   impl_->last_waitable = request.send().ignoreResult();

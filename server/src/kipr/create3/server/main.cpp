@@ -232,7 +232,8 @@ public:
     goal.lightring[5].green = lightring.getLed5().getG();
     goal.lightring[5].blue = lightring.getLed5().getB();
 
-    goal.max_runtime = params.getMaxRuntime();
+    goal.max_runtime.seconds = params.getDuration().getSeconds();
+    goal.max_runtime.nanoseconds = params.getDuration().getNanoseconds();
 
     return node_->led_animation(goal).ignoreResult();
   }
