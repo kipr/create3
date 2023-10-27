@@ -17,6 +17,7 @@
 #include <irobot_create_msgs/action/undock.hpp>
 #include <irobot_create_msgs/action/wall_follow.hpp>
 
+#include <irobot_create_msgs/msg/led_color.hpp>
 #include <irobot_create_msgs/msg/wheel_vels.hpp>
 
 #include <kipr/create3/create3.capnp.h>
@@ -208,29 +209,32 @@ public:
     create_action::LedAnimation::Goal goal;
     goal.animation_type = params.getAnimationType();
 
-    goal.lightring[0].red = lightring.getLed0().getR();
-    goal.lightring[0].green = lightring.getLed0().getG();
-    goal.lightring[0].blue = lightring.getLed0().getB();
+    irobot_create_msgs::msg::LedColor led_colors[6];
+    led_colors[0].red = light_ring.getLed0().getR();
+    led_colors[0].green = light_ring.getLed0().getG();
+    led_colors[0].blue = light_ring.getLed0().getB();
 
-    goal.lightring[1].red = lightring.getLed1().getR();
-    goal.lightring[1].green = lightring.getLed1().getG();
-    goal.lightring[1].blue = lightring.getLed1().getB();
+    led_colors[1].red = light_ring.getLed1().getR();
+    led_colors[1].green = light_ring.getLed1().getG();
+    led_colors[1].blue = light_ring.getLed1().getB();
 
-    goal.lightring[2].red = lightring.getLed2().getR();
-    goal.lightring[2].green = lightring.getLed2().getG();
-    goal.lightring[2].blue = lightring.getLed2().getB();
+    led_colors[2].red = light_ring.getLed2().getR();
+    led_colors[2].green = light_ring.getLed2().getG();
+    led_colors[2].blue = light_ring.getLed2().getB();
 
-    goal.lightring[3].red = lightring.getLed3().getR();
-    goal.lightring[3].green = lightring.getLed3().getG();
-    goal.lightring[3].blue = lightring.getLed3().getB();
+    led_colors[3].red = light_ring.getLed3().getR();
+    led_colors[3].green = light_ring.getLed3().getG();
+    led_colors[3].blue = light_ring.getLed3().getB();
 
-    goal.lightring[4].red = lightring.getLed4().getR();
-    goal.lightring[4].green = lightring.getLed4().getG();
-    goal.lightring[4].blue = lightring.getLed4().getB();
+    led_colors[4].red = light_ring.getLed4().getR();
+    led_colors[4].green = light_ring.getLed4().getG();
+    led_colors[4].blue = light_ring.getLed4().getB();
 
-    goal.lightring[5].red = lightring.getLed5().getR();
-    goal.lightring[5].green = lightring.getLed5().getG();
-    goal.lightring[5].blue = lightring.getLed5().getB();
+    led_colors[5].red = light_ring.getLed5().getR();
+    led_colors[5].green = light_ring.getLed5().getG();
+    led_colors[5].blue = light_ring.getLed5().getB();
+
+    goal.lightring = led_colors;
 
     goal.max_runtime = rclcpp::Duration(params.getDuration().getSeconds(), params.getDuration().getNanoseconds());
 
