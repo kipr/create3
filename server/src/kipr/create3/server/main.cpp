@@ -203,17 +203,35 @@ public:
   kj::Promise<void> ledAnimation(LedAnimationContext context) override
   {
     auto params = context.getParams();
+    auto lightring = params.getLightring();
 
     create_action::LedAnimation::Goal goal;
     goal.animation_type = params.getAnimationType();
-    goal.lightring = {
-      params.getLightring().led0,
-      params.getLightring().led1,
-      params.getLightring().led2,
-      params.getLightring().led3,
-      params.getLightring().led4,
-      params.getLightring().led5,
-    };
+
+    goal.lightring[0].red = lightring.getLed0().getR();
+    goal.lightring[0].green = lightring.getLed0().getG();
+    goal.lightring[0].blue = lightring.getLed0().getB();
+
+    goal.lightring[1].red = lightring.getLed1().getR();
+    goal.lightring[1].green = lightring.getLed1().getG();
+    goal.lightring[1].blue = lightring.getLed1().getB();
+
+    goal.lightring[2].red = lightring.getLed2().getR();
+    goal.lightring[2].green = lightring.getLed2().getG();
+    goal.lightring[2].blue = lightring.getLed2().getB();
+
+    goal.lightring[3].red = lightring.getLed3().getR();
+    goal.lightring[3].green = lightring.getLed3().getG();
+    goal.lightring[3].blue = lightring.getLed3().getB();
+
+    goal.lightring[4].red = lightring.getLed4().getR();
+    goal.lightring[4].green = lightring.getLed4().getG();
+    goal.lightring[4].blue = lightring.getLed4().getB();
+
+    goal.lightring[5].red = lightring.getLed5().getR();
+    goal.lightring[5].green = lightring.getLed5().getG();
+    goal.lightring[5].blue = lightring.getLed5().getB();
+
     goal.max_runtime = params.getMaxRuntime();
 
     return node_->led_animation(goal).ignoreResult();
