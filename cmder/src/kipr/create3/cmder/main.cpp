@@ -3,6 +3,7 @@
 #include <kipr/create3/client/euler.h>
 #include <kipr/create3/client/Vector3.hpp>
 #include <kipr/create3/client/Quaternion.hpp>
+#include <kipr/create3/client/LedAnimationType.hpp>
 
 #include <clipp.h>
 #include <iostream>
@@ -50,6 +51,8 @@ enum class Mode
   Odometry,
   NavigateTo,
   Rotate,
+  DriveStraight,
+  LedAnimation,
   Help
 };
 
@@ -87,10 +90,19 @@ int main(int argc, char *argv[])
   double navigate_to_max_linear_speed = 0.0;
   double navigate_to_max_angular_speed = 0.0;
 
+  std::string led_animation_type;
+  Lightring lightring;
+  lightring.led0 = {.r = 0, .g = 0, .b = 0};
+  lightring.led1 = {.r = 0, .g = 0, .b = 0};
+  lightring.led2 = {.r = 0, .g = 0, .b = 0};
+  lightring.led3 = {.r = 0, .g = 0, .b = 0};
+  lightring.led4 = {.r = 0, .g = 0, .b = 0};
+  lightring.led5 = {.r = 0, .g = 0, .b = 0};
+  double led_animation_max_runtime = 0.0;
+
   double rotate_angle = 0.0;
   double rotate_max_angular_speed = 0.0;
 
-  std::string drive_straight_direction;
   double drive_straight_distance = 0.0;
   double drive_straight_max_linear_speed = 0.0;
 
@@ -105,6 +117,29 @@ int main(int argc, char *argv[])
         (command("dock") >> set(mode, Mode::Dock)) |
         (command("odometry") >> set(mode, Mode::Odometry)) |
         (
+          command("led_animation") >> set(mode, Mode::LedAnimation), 
+          value("led_animation_type") >> set(led_animation_type),
+          value("led0_r") >> set(lightring.led0.r),
+          value("led0_g") >> set(lightring.led0.g),
+          value("led0_b") >> set(lightring.led0.b),
+          value("led1_r") >> set(lightring.led1.r),
+          value("led1_g") >> set(lightring.led1.g),
+          value("led1_b") >> set(lightring.led1.b),
+          value("led2_r") >> set(lightring.led2.r),
+          value("led2_g") >> set(lightring.led2.g),
+          value("led2_b") >> set(lightring.led2.b),
+          value("led3_r") >> set(lightring.led3.r),
+          value("led3_g") >> set(lightring.led3.g),
+          value("led3_b") >> set(lightring.led3.b),
+          value("led4_r") >> set(lightring.led4.r),
+          value("led4_g") >> set(lightring.led4.g),
+          value("led4_b") >> set(lightring.led4.b),
+          value("led5_r") >> set(lightring.led5.r),
+          value("led5_g") >> set(lightring.led5.g),
+          value("led5_b") >> set(lightring.led5.b),
+          value("max_runtime") >> set(led_animation_max_runtime)
+        ) |
+        (
           command("navigate_to") >> set(mode, Mode::NavigateTo),
           value("x") >> set(navigate_to_x),
           value("y") >> set(navigate_to_y),
@@ -113,7 +148,7 @@ int main(int argc, char *argv[])
           option("theta") >> set(navigate_to_theta)
         ) |
         (command("rotate") >> set(mode, Mode::Rotate), value("angle") >> set(rotate_angle), value("max_angular_speed") >> set(rotate_max_angular_speed)) |
-        (command("drive_straight") >> set(mode, Mode::Rotate), value("direction") >> set(drive_straight_direction), value("distance") >> set(drive_straight_distance), value("max_linear_speed") >> set(drive_straight_max_linear_speed))
+        (command("drive_straight") >> set(mode, Mode::DriveStraight), value("distance") >> set(drive_straight_distance), value("max_linear_speed") >> set(drive_straight_max_linear_speed))
       )
     )
   );
@@ -147,6 +182,25 @@ int main(int argc, char *argv[])
     case Mode::Undock:
       init_client().undock();
       break;
+    case Mode::DriveStraight:
+    {
+      auto client = init_client();
+      client.driveStraight(
+        drive_straight_distance,
+        drive_straight_max_linear_speed
+      );
+      break;
+    }
+    case Mode::LedAnimation:
+    {
+      auto client = init_client();
+      client.ledAnimation(
+        create3_led_animation_type_from_string(led_animation_type.c_str()),
+        lightring,
+        create3_duration_from_double(led_animation_max_runtime)
+      );
+      break;
+    }
     case Mode::Odometry:
     {
       const auto odometry = init_client().getOdometry();

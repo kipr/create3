@@ -4,6 +4,7 @@ add_library(${CMAKE_PROJECT_NAME}_client SHARED
   src/kipr/create3/client/ClientImpl.cpp
   src/kipr/create3/client/duration_c.cpp
   src/kipr/create3/client/euler_c.cpp
+  src/kipr/create3/client/led_animation_type_c.cpp
   src/kipr/create3/client/test_utils.cpp
 )
 

@@ -110,6 +110,7 @@ public:
     : Node("create3")
     , dock(adaptAction(rclcpp_action::create_client<create_action::Dock>(this, "dock")))
     , drive_arc(adaptAction(rclcpp_action::create_client<create_action::DriveArc>(this, "drive_arc")))
+    , drive_distance(adaptAction(rclcpp_action::create_client<create_action::DriveDistance>(this, "drive_distance")))
     , led_animation(adaptAction(rclcpp_action::create_client<create_action::LedAnimation>(this, "led_animation")))
     , navigate_to(adaptAction(rclcpp_action::create_client<create_action::NavigateToPosition>(this, "navigate_to_position")))
     , rotate(adaptAction(rclcpp_action::create_client<create_action::RotateAngle>(this, "rotate_angle")))
@@ -133,6 +134,7 @@ public:
 
   const AdaptedAction<create_action::Dock> dock;
   const AdaptedAction<create_action::DriveArc> drive_arc;
+  const AdaptedAction<create_action::DriveDistance> drive_distance;
   const AdaptedAction<create_action::LedAnimation> led_animation;
   const AdaptedAction<create_action::NavigateToPosition> navigate_to;
   const AdaptedAction<create_action::RotateAngle> rotate;
@@ -199,6 +201,17 @@ public:
     goal.max_translation_speed = params.getMaxLinearSpeed();
 
     return node_->drive_arc(goal).ignoreResult();
+  }
+
+  kj::Promise<void> driveDistance(DriveDistanceContext context) override
+  {
+    auto params = context.getParams();
+
+    create_action::DriveDistance::Goal goal;
+    goal.distance = params.getDistance();
+    goal.max_translation_speed = params.getMaxLinearSpeed();
+
+    return node_->drive_distance(goal).ignoreResult();
   }
 
   kj::Promise<void> ledAnimation(LedAnimationContext context) override
