@@ -19,7 +19,7 @@
 
 #include <irobot_create_msgs/msg/led_color.hpp>
 #include <irobot_create_msgs/msg/wheel_vels.hpp>
-#include <irobot_create_msgs/msg/audo_note.hpp>
+#include <irobot_create_msgs/msg/audio_note.hpp>
 #include <irobot_create_msgs/msg/audio_note_vector.hpp>
 
 #include <kipr/create3/create3.capnp.h>
