@@ -211,7 +211,7 @@ public:
       index++;
     }
     cmd_notes.notes = notes_;
-    cmd_notes.overwrite = overwrite;
+    cmd_notes.append = overwrite;
 
     return node_->playAudio(cmd_notes);
   }
