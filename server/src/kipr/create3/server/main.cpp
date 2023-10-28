@@ -161,6 +161,7 @@ private:
   }
 
   rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub_;
+  rclcpp::Publisher<create_msg::AudioNoteVector>::SharedPtr cmd_audio_pub_;
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
 
   nav_msgs::msg::Odometry::ConstSharedPtr latest_odom_;
