@@ -119,7 +119,7 @@ public:
     , undock(adaptAction(rclcpp_action::create_client<create_action::Undock>(this, "undock")))
 
     , cmd_vel_pub_(create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10))
-    , cmd_notes_pub_(create_publisher<create_msg::AudioNoteVector>("cmd_audio", 10))
+    , cmd_audio_pub_(create_publisher<create_msg::AudioNoteVector>("cmd_audio", 10))
 
     , odom_sub_(create_subscription<nav_msgs::msg::Odometry>(
         "odom",
@@ -137,7 +137,7 @@ public:
 
   kj::Promise<void> playAudio(const create_msg::AudioNoteVector &notes)
   {
-    cmd_notes_pub_->publish(notes);
+    cmd_audio_pub_->publish(notes);
     return kj::READY_NOW;
   }
 
@@ -201,7 +201,7 @@ public:
     auto overwrite = params.getOverwrite();
 
     create_msg::AudioNoteVector cmd_notes;
-    create_msg::AudioNote notes_[notes.size()];
+    std::array<create_msg::AudioNote, notes.size()> notes_;
     size_t index = 0;
 
     for(const auto &note : notes)
