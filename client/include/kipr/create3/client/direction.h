@@ -13,6 +13,13 @@ typedef enum
   Create3DirectionInvalid,
 } Create3Direction;
 
+/**
+ * @brief Converts a string to a Create3Direction.
+ * 
+ * @param str The string to convert.
+ * 
+ * @return The Create3Direction represented by the string, or Create3DirectionInvalid if the string is invalid.
+*/
 Create3Direction create3_direction_from_string(const char* str);
 
 #ifdef __cplusplus

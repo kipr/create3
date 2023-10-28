@@ -4,6 +4,7 @@
 #include <kipr/create3/client/Vector3.hpp>
 #include <kipr/create3/client/Quaternion.hpp>
 #include <kipr/create3/client/LedAnimationType.hpp>
+#include <kipr/create3/client/AudioNote.hpp>
 
 #include <clipp.h>
 #include <iostream>
@@ -46,6 +47,7 @@ std::string programName(const char *const argv0)
 enum class Mode
 {
   SetVelocity,
+  PlayAudio,
   Undock,
   Dock,
   Odometry,
@@ -80,8 +82,13 @@ int main(int argc, char *argv[])
   std::string address = "localhost:50051";
 
   Mode mode = Mode::Help;
+
   double linear_x = 0.0;
   double angular_z = 0.0;
+
+  int audio_note_count = 0;
+  AudioNote audio_notes[256];
+  bool overwrite = false;
 
   float navigate_to_x = 0.0;
   float navigate_to_y = 0.0;
@@ -113,6 +120,19 @@ int main(int argc, char *argv[])
       option("--address", "-a") & value("host:port") % "The server's address" >> set(address),
       (
         (command("set_velocity") >> set(mode, Mode::SetVelocity), value("linear_x") >> set(linear_x), value("angular_z") >> set(angular_z)) |
+        (
+          command("play_audio") >> set(mode, Mode::PlayAudio),
+          repeatable(
+            value("frequency") >> [&](const uint16_t frequency) {
+              audio_notes[audio_note_count].frequency = frequency;
+            },
+            value("seconds") >> [&](const double seconds) {
+              audio_notes[audio_note_count].seconds = seconds;
+              ++audio_note_count;
+            }
+          ),
+          option("overwrite") >> set(overwrite)
+        ) |
         (command("undock") >> set(mode, Mode::Undock)) |
         (command("dock") >> set(mode, Mode::Dock)) |
         (command("odometry") >> set(mode, Mode::Odometry)) |
@@ -175,6 +195,9 @@ int main(int argc, char *argv[])
         .linear_x = linear_x,
         .angular_z = angular_z
       });
+      break;
+    case Mode::PlayAudio:
+      init_client().playAudio(audio_notes, audio_note_count, overwrite);
       break;
     case Mode::Dock:
       init_client().dock();

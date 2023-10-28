@@ -19,6 +19,8 @@
 
 #include <irobot_create_msgs/msg/led_color.hpp>
 #include <irobot_create_msgs/msg/wheel_vels.hpp>
+#include <irobot_create_msgs/msg/audo_note.hpp>
+#include <irobot_create_msgs/msg/audio_note_vector.hpp>
 
 #include <kipr/create3/create3.capnp.h>
 #include <capnp/ez-rpc.h>
@@ -117,6 +119,7 @@ public:
     , undock(adaptAction(rclcpp_action::create_client<create_action::Undock>(this, "undock")))
 
     , cmd_vel_pub_(create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10))
+    , cmd_notes_pub_(create_publisher<create_msg::AudioNoteVector>("cmd_audio", 10))
 
     , odom_sub_(create_subscription<nav_msgs::msg::Odometry>(
         "odom",
@@ -129,6 +132,12 @@ public:
   kj::Promise<void> setVelocity(const geometry_msgs::msg::Twist &velocity)
   {
     cmd_vel_pub_->publish(velocity);
+    return kj::READY_NOW;
+  }
+
+  kj::Promise<void> playAudio(const create_msg::AudioNoteVector &notes)
+  {
+    cmd_notes_pub_->publish(notes);
     return kj::READY_NOW;
   }
 
@@ -183,6 +192,28 @@ public:
     cmd_vel.angular.z = velocity.getAngularZ();
 
     return node_->setVelocity(cmd_vel);
+  }
+
+  kj::Promise<void> playAudio(PlayAudioContext context) override
+  {
+    auto params = context.getParams();
+    auto notes = params.getNotes();
+    auto overwrite = params.getOverwrite();
+
+    create_msg::AudioNoteVector cmd_notes;
+    create_msg::AudioNote notes_[notes.size()];
+    size_t index = 0;
+
+    for(const auto &note : notes)
+    {
+      notes_[index].frequency = note.getFrequency();
+      notes_[index].duration = note.getDuration();
+      index++;
+    }
+    cmd_notes.notes = notes_;
+    cmd_notes.overwrite = overwrite;
+
+    return node_->playAudio(cmd_notes);
   }
 
   kj::Promise<void> dock(DockContext context) override

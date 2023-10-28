@@ -220,6 +220,65 @@ void create3_audio_overwrite(const Create3AudioNote *const notes, const unsigned
 void create3_audio_append(const Create3AudioNote *const notes, const unsigned count);
 
 /**
+ * @brief Create an LED color from the given RGB values.
+ * 
+ * @param r The red value.
+ * @param g The green value.
+ * @param b The blue value.
+ * 
+ * @return The LED color.
+ */
+Create3LedColor create3_led_color(const uint8_t r, const uint8_t g, const uint8_t b);
+
+
+/**
+ * @brief Create a light ring from the given LED colors.
+ * 
+ * @param led0 The LED color for LED 0.
+ * @param led1 The LED color for LED 1.
+ * @param led2 The LED color for LED 2.
+ * @param led3 The LED color for LED 3.
+ * @param led4 The LED color for LED 4.
+ * @param led5 The LED color for LED 5.
+ * 
+ * @return The light ring.
+ */
+Create3Lightring create3_lightring(
+  const Create3LedColor led0,
+  const Create3LedColor led1,
+  const Create3LedColor led2,
+  const Create3LedColor led3,
+  const Create3LedColor led4,
+  const Create3LedColor led5
+);
+
+/**
+ * @brief Set the light ring of the iRobot Create 3.
+ * @details This will set the light ring of the iRobot Create 3 to the given light ring colors.
+ * 
+ * @param lightring The light ring colors to set.
+ * 
+ * @example 
+ * ```
+ * struct Create3LedColor green;
+ * green.r = 0;
+ * green.g = 255;
+ * green.b = 0;
+ * 
+ * struct Create3LightRing lightring;
+ * light_ring.led0 = green;
+ * light_ring.led1 = green;
+ * light_ring.led2 = green;
+ * light_ring.led3 = green;
+ * light_ring.led4 = green;
+ * light_ring.led5 = green;
+ * 
+ * create3_lightring(lightring); // Set the light ring to green.
+ * ```
+ */
+void create3_set_lightring(const Create3Lightring lightring);
+
+/**
  * @brief Run the given LED animation on the iRobot Create 3.
  * @details This will run the given LED animation type and light ring colors on the iRobot Create 3 for the given amount of time.
  * 

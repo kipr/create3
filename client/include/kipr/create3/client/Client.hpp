@@ -56,6 +56,7 @@ namespace client
     void driveDistance(const float distance, const float max_linear_speed);
     void driveArc(const Direction direction, const float radius, const float angle, const float max_linear_speed);
     void ledAnimation(const LedAnimationType animation_type, const Lightring lightring, Duration duration);
+    void lightring(const Lightring lightring);
     void rotate(const float angle, const float max_angular_speed);
     void navigateTo(const Pose &pose, const float max_linear_speed, const float max_angular_speed, const bool achieve_goal_heading = true);
     void navigateTo(const double x, const double y, const double theta, const float max_linear_speed, const float max_angular_speed);

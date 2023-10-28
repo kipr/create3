@@ -75,7 +75,10 @@ void Client::playAudio(const AudioNote *const notes, const std::size_t count, co
   for (std::size_t i = 0; i < count; ++i)
   {
     notesBuilder[i].setFrequency(notes[i].frequency);
-    notesBuilder[i].setSeconds(notes[i].seconds);
+    auto durationBuilder = notesBuilder[i].initDuration();
+    Create3Duration duration = create3_duration_from_double(notes[i].seconds);
+    durationBuilder.setSeconds(duration.seconds);
+    durationBuilder.setNanoseconds(duration.nanoseconds);
   }
   
   request.setOverwrite(overwrite);

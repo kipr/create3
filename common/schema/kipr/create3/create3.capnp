@@ -8,9 +8,14 @@ struct Twist {
   angularZ @1 :Float64;
 }
 
+struct Duration {
+  seconds @0 :Int32;
+  nanoseconds @1 :UInt32;
+}
+
 struct AudioNote {
   frequency @0 :UInt16;
-  seconds @1 :Float64;
+  duration @1 :Duration;
 }
 
 struct LedColor {
@@ -26,11 +31,6 @@ struct Lightring {
   led3 @3 :LedColor;
   led4 @4 :LedColor;
   led5 @5 :LedColor;
-}
-
-struct Duration {
-  seconds @0 :Int32;
-  nanoseconds @1 :UInt32;
 }
 
 struct Quaternion {
