@@ -204,7 +204,7 @@ public:
     const size_t count = (int) notes.size();
 
     create_msg::AudioNoteVector cmd_notes;
-    std::vector<create_msg::AudioNotet> notes_;
+    std::vector<create_msg::AudioNote> notes_;
     int index = 0;
 
     for(const auto &note : notes)
