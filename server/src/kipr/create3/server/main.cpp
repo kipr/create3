@@ -201,16 +201,16 @@ public:
     auto notes = params.getNotes();
     auto overwrite = params.getOverwrite();
 
-    size_t count = (int) notes.size();
+    const size_t count = (int) notes.size();
 
     create_msg::AudioNoteVector cmd_notes;
-    std::array<create_msg::AudioNote, count> notes_;
+    std::vector<create_msg::AudioNotet> notes_;
     int index = 0;
 
     for(const auto &note : notes)
     {
       notes_[index].frequency = note.getFrequency();
-      notes_[index].duration = note.getDuration();
+      notes_[index].max_runtime = note.getDuration();
       index++;
     }
     cmd_notes.notes = notes_;
