@@ -65,28 +65,6 @@ void Client::setVelocity(const Twist &velocity)
   impl_->last_waitable = request.send().ignoreResult();
 }
 
-void Client::playAudio(const AudioNote *const notes, const std::size_t count, const bool overwrite)
-{
-  wait();
-
-  auto request = impl_->create3Client().playAudioRequest();
-  auto notesBuilder = request.initNotes(count);
-
-  for (std::size_t i = 0; i < count; ++i)
-  {
-    notesBuilder[i].setFrequency(notes[i].frequency);
-    auto durationBuilder = notesBuilder[i].initDuration();
-    Create3Duration duration = create3_duration_from_double(notes[i].seconds);
-    durationBuilder.setSeconds(duration.seconds);
-    durationBuilder.setNanoseconds(duration.nanoseconds);
-  }
-  
-  request.setOverwrite(overwrite);
-
-  std::lock_guard<std::mutex> lock(wait_mut_);
-  impl_->last_waitable = request.send().ignoreResult();
-}
-
 void Client::ledAnimation(const LedAnimationType animation_type, const Lightring lightring, const Duration duration)
 {
   wait();

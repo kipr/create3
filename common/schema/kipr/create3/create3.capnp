@@ -13,11 +13,6 @@ struct Duration {
   nanoseconds @1 :UInt32;
 }
 
-struct AudioNote {
-  frequency @0 :UInt16;
-  duration @1 :Duration;
-}
-
 struct LedColor {
   r @0 :UInt8;
   g @1 :UInt8;
@@ -54,7 +49,6 @@ struct Pose {
 interface Create3 {
   isConnected @0 () -> (connected :Bool);
   setVelocity @1 (velocity :Twist);
-  playAudio @2 (notes :List(AudioNote), overwrite :Bool);
 
   dock @3 ();
   undock @4 ();
