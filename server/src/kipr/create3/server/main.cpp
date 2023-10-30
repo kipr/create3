@@ -210,8 +210,7 @@ public:
     for(const auto &note : notes)
     {
       notes_[index].frequency = note.getFrequency();
-      notes_[index].max_runtime.seconds = note.getDuration().getSeconds();
-      notes_[index].max_runtime.nanoseconds = note.getDuration().getNanoseconds();
+      notes_[index].max_runtime = rclcpp::Duration(note.getDuration().getSeconds(), note.getDuration().getNanoseconds());
       index++;
     }
     cmd_notes.notes = notes_;
