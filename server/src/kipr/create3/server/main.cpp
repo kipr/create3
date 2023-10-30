@@ -201,9 +201,11 @@ public:
     auto notes = params.getNotes();
     auto overwrite = params.getOverwrite();
 
+    size_t count = (int) notes.size();
+
     create_msg::AudioNoteVector cmd_notes;
-    std::array<create_msg::AudioNote, notes.size()> notes_;
-    size_t index = 0;
+    std::array<create_msg::AudioNote, count> notes_;
+    int index = 0;
 
     for(const auto &note : notes)
     {
