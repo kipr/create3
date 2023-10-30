@@ -50,15 +50,15 @@ interface Create3 {
   isConnected @0 () -> (connected :Bool);
   setVelocity @1 (velocity :Twist);
 
-  dock @3 ();
-  undock @4 ();
+  dock @2 ();
+  undock @3 ();
 
-  driveDistance @5 (distance :Float32, maxLinearSpeed :Float32);
-  driveArc @6 (direction :Int8, radius :Float32, angle :Float32, maxLinearSpeed :Float32);
-  ledAnimation @7 (animationType: Int8, lightring: Lightring, duration: Duration);
-  rotate @8 (angle :Float32, maxAngularSpeed :Float32);
-  navigateTo @9 (pose :Pose, maxLinearSpeed :Float32, maxAngularSpeed :Float32, achieveGoalHeading :Bool);
-  followWall @10 (follow :Int8, maxSeconds :Float32);
+  driveDistance @4 (distance :Float32, maxLinearSpeed :Float32);
+  driveArc @5 (direction :Int8, radius :Float32, angle :Float32, maxLinearSpeed :Float32);
+  ledAnimation @6 (animationType: Int8, lightring: Lightring, duration: Duration);
+  rotate @7 (angle :Float32, maxAngularSpeed :Float32);
+  navigateTo @8 (pose :Pose, maxLinearSpeed :Float32, maxAngularSpeed :Float32, achieveGoalHeading :Bool);
+  followWall @9 (follow :Int8, maxSeconds :Float32);
 
-  getOdometry @11 () -> (pose :Pose, velocity :Twist);
+  getOdometry @10 () -> (pose :Pose, velocity :Twist);
 }

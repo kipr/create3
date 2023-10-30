@@ -209,21 +209,21 @@ double create3_velocity_get_angular_z()
   return create3_velocity_get().angular_z;
 }
 
-void create3_audio_play(const Create3AudioNote *const notes, const unsigned count, const int overwrite)
-{
-  std::lock_guard<std::mutex> lock(global_client_mut);
-  global_client->playAudio(notes, count, overwrite);
-}
+// void create3_audio_play(const Create3AudioNote *const notes, const unsigned count, const int overwrite)
+// {
+//   std::lock_guard<std::mutex> lock(global_client_mut);
+//   global_client->playAudio(notes, count, overwrite);
+// }
 
-void create3_audio_overwrite(const Create3AudioNote *const notes, const unsigned count)
-{
-  create3_audio_play(notes, count, 1);
-}
+// void create3_audio_overwrite(const Create3AudioNote *const notes, const unsigned count)
+// {
+//   create3_audio_play(notes, count, 1);
+// }
 
-void create3_audio_append(const Create3AudioNote *const notes, const unsigned count)
-{
-  create3_audio_play(notes, count, 0);
-}
+// void create3_audio_append(const Create3AudioNote *const notes, const unsigned count)
+// {
+//   create3_audio_play(notes, count, 0);
+// }
 
 void create3_led_animation(const Create3LedAnimationType animation_type, const Create3Lightring lightring, const double max_runtime)
 {
