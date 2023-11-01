@@ -320,14 +320,16 @@ public:
 
     for (size_t i = 0; i < readings.size(); ++i)
     {
-      kipr::create3::IrIntensity::Builder ir_intensity_builder = nullptr;
+      // kipr::create3::IrIntensity::Builder ir_intensity_builder = nullptr;
       const double timestamp = readings[i].header.stamp.sec + readings[i].header.stamp.nanosec / 1e9;
+      ir_intensity_vector[i].setFrameId(readings[i].header.frame_id);
+      ir_intensity_vector[i].setTimestamp(timestamp);
+      ir_intensity_vector[i].setIntensity(readings[i].value);
 
-      ir_intensity_builder.setFrameId(readings[i].header.frame_id);
-      ir_intensity_builder.setTimestamp(timestamp);
-      ir_intensity_builder.setIntensity(readings[i].value);
-
-      ir_intensity_vector.setWithCaveats(i, ir_intensity_builder.asReader());
+      // ir_intensity_builder.setFrameId(readings[i].header.frame_id);
+      // ir_intensity_builder.setTimestamp(timestamp);
+      // ir_intensity_builder.setIntensity(readings[i].value);
+      // ir_intensity_vector.setWithCaveats(i, ir_intensity_builder.asReader());
     }
 
     return kj::READY_NOW;
