@@ -208,7 +208,8 @@ int main(int argc, char *argv[])
     {
       const auto ir_intensity_vector = init_client().getIrIntensityVector();
       std::cout
-        << "IrIntensityVector:" << std::endl;
+        << "IrIntensityVector:" << std::endl
+        << "  size: " << ir_intensity_vector.size() << std::endl;
       for (std::size_t i = 0; i < ir_intensity_vector.size(); ++i)
       {
         std::cout 
