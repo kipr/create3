@@ -6,6 +6,7 @@
 #include <chrono>
 #include <iostream>
 #include <cmath>
+#include <string>
 
 #include "kipr/create3/client/ClientImpl.hpp"
 
@@ -222,6 +223,40 @@ void Client::followWall(const Follow follow, const float max_seconds)
 
   std::lock_guard<std::mutex> lock(wait_mut_);
   impl_->last_waitable = request.send().ignoreResult();
+}
+
+IrIntensityVector Client::getIrIntensityVector() const
+{
+  using namespace std::chrono;
+  using namespace std::chrono_literals;
+
+  {
+    std::lock_guard<std::mutex> lock(latest_ir_intensity_vector_mut_);
+    // Odometry remains valid for 10 milliseconds
+    if (latest_ir_intensity_vector_ && latest_ir_intensity_vector_->at > system_clock::now().time_since_epoch() - 10ms)
+    {
+      return latest_ir_intensity_vector_->value;
+    }
+  }
+
+  auto request = impl_->create3Client().getIrIntensityVectorRequest();
+  const auto response = request.send().wait(impl_->waitScope());
+
+  const auto ir_intensity_vector = response.getIrIntensityVector();
+
+  IrIntensityVector result;
+  result.reserve(ir_intensity_vector.size());
+
+  for(size_t i = 0; i < ir_intensity_vector.size(); ++i)
+  {
+    const auto ir_intensity = ir_intensity_vector[i];
+    result[i] = IrIntensity {
+      .frameId = ir_intensity.getFrameId().cStr(),
+      .intensity = ir_intensity.getIntensity()
+    };
+  }
+
+  return result;
 }
 
 Odometry Client::getOdometry() const

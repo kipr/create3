@@ -17,6 +17,7 @@
 #include <irobot_create_msgs/action/undock.hpp>
 #include <irobot_create_msgs/action/wall_follow.hpp>
 
+#include <irobot_create_msgs/msg/ir_intensity_vector.hpp>
 #include <irobot_create_msgs/msg/led_color.hpp>
 #include <irobot_create_msgs/msg/wheel_vels.hpp>
 
@@ -101,7 +102,7 @@ AdaptedAction<T> adaptAction(const typename std::shared_ptr<rclcpp_action::Clien
 namespace create_action = irobot_create_msgs::action;
 namespace create_msg = irobot_create_msgs::msg;
 
-rclcpp_action::Client<create_action::Dock>::WrappedResult dock;
+// rclcpp_action::Client<create_action::Dock>::WrappedResult dock;
 
 class Create3Node : public rclcpp::Node
 {
@@ -118,6 +119,14 @@ public:
 
     , cmd_vel_pub_(create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10))
 
+    , ir_intensity_sub_(create_subscription<create_msg::IrIntensityVector>(
+        "ir_intensity",
+        rclcpp::QoS(rclcpp::KeepLast(10), rmw_qos_profile_sensor_data),
+        [this](const create_msg::IrIntensityVector::ConstSharedPtr &msg) {
+          latest_ir_intensity_ = msg;
+        }
+      ))        
+        
     , odom_sub_(create_subscription<nav_msgs::msg::Odometry>(
         "odom",
         rclcpp::QoS(rclcpp::KeepLast(10), rmw_qos_profile_sensor_data),
@@ -140,6 +149,11 @@ public:
   const AdaptedAction<create_action::RotateAngle> rotate;
   const AdaptedAction<create_action::Undock> undock;
 
+  const create_msg::IrIntensityVector::ConstSharedPtr &getIrIntensityVector() const
+  {
+    return latest_ir_intensity_;
+  }
+
   const nav_msgs::msg::Odometry::ConstSharedPtr &getOdometry() const
   {
     return latest_odom_;
@@ -153,7 +167,9 @@ private:
 
   rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub_;
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
+  rclcpp::Subscription<create_msg::IrIntensityVector>::SharedPtr ir_intensity_sub_;
 
+  create_msg::IrIntensityVector::ConstSharedPtr latest_ir_intensity_;
   nav_msgs::msg::Odometry::ConstSharedPtr latest_odom_;
 };
 
@@ -290,6 +306,31 @@ public:
   kj::Promise<void> undock(UndockContext context) override
   {
     return node_->undock(create_action::Undock::Goal {}).ignoreResult();
+  }
+
+  kj::Promise<void> getIrIntensityVector(GetIrIntensityVectorContext context) override
+  {
+    auto response = context.getResults();
+
+    const auto ir_intensity = node_->getIrIntensityVector();
+
+    const auto readings = ir_intensity->readings;
+
+    auto ir_intensity_vector = response.initIrIntensityVector(readings.size());
+
+    for (size_t i = 0; i < readings.size(); ++i)
+    {
+      kipr::create3::IrIntensity::Builder ir_intensity_builder = nullptr;
+      const double timestamp = readings[i].header.stamp.sec + readings[i].header.stamp.nanosec / 1e9;
+
+      ir_intensity_builder.setFrameId(readings[i].header.frame_id);
+      ir_intensity_builder.setTimestamp(timestamp);
+      ir_intensity_builder.setIntensity(readings[i].value);
+
+      ir_intensity_vector.setWithCaveats(i, ir_intensity_builder.asReader());
+    }
+
+    return kj::READY_NOW;
   }
 
   kj::Promise<void> getOdometry(GetOdometryContext context) override

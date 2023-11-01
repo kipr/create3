@@ -48,6 +48,7 @@ enum class Mode
   SetVelocity,
   Undock,
   Dock,
+  IrIntensityVector,
   Odometry,
   NavigateTo,
   Rotate,
@@ -116,6 +117,7 @@ int main(int argc, char *argv[])
         (command("set_velocity") >> set(mode, Mode::SetVelocity), value("linear_x") >> set(linear_x), value("angular_z") >> set(angular_z)) |
         (command("undock") >> set(mode, Mode::Undock)) |
         (command("dock") >> set(mode, Mode::Dock)) |
+        (command("irIntensityVector") >> set(mode, Mode::IrIntensityVector)) |
         (command("odometry") >> set(mode, Mode::Odometry)) |
         (
           command("led_animation") >> set(mode, Mode::LedAnimation), 
@@ -202,6 +204,19 @@ int main(int argc, char *argv[])
       );
       break;
     }
+    case Mode::IrIntensityVector:
+    {
+      const auto ir_intensity_vector = init_client().getIrIntensityVector();
+      std::cout
+        << "IrIntensityVector:" << std::endl;
+      for (std::size_t i = 0; i < ir_intensity_vector.size(); ++i)
+      {
+        std::cout 
+          << "  " << i << " (" << ir_intensity_vector[i].frameId << ")  :" << ir_intensity_vector[i].intensity << std::endl;
+      }
+      break;
+    }
+
     case Mode::Odometry:
     {
       const auto odometry = init_client().getOdometry();

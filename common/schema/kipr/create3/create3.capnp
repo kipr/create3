@@ -28,6 +28,12 @@ struct Lightring {
   led5 @5 :LedColor;
 }
 
+struct IrIntensity {
+  frameId @0 :Text;
+  timestamp @1 :Float64;
+  intensity @2 :Int16;
+}
+
 struct Quaternion {
   x @0 :Float64;
   y @1 :Float64;
@@ -60,5 +66,6 @@ interface Create3 {
   navigateTo @8 (pose :Pose, maxLinearSpeed :Float32, maxAngularSpeed :Float32, achieveGoalHeading :Bool);
   followWall @9 (follow :Int8, maxSeconds :Float32);
 
-  getOdometry @10 () -> (pose :Pose, velocity :Twist);
+  getIrIntensityVector @10 () -> (irIntensityVector :List(IrIntensity));
+  getOdometry @11 () -> (pose :Pose, velocity :Twist);
 }
