@@ -119,6 +119,12 @@ public:
 
     , cmd_vel_pub_(create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10))
 
+    , cliff_intensity_sub_(create_subscription<create_msg::IrIntensityVector>(
+        "cliff_intensity",
+        rclcpp::QoS(rclcpp::KeepLast(10), rmw_qos_profile_sensor_data),
+        std::bind(&Create3Node::onCliffIntensity, this, std::placeholders::_1)
+      ))
+
     , ir_intensity_sub_(create_subscription<create_msg::IrIntensityVector>(
         "ir_intensity",
         rclcpp::QoS(rclcpp::KeepLast(10), rmw_qos_profile_sensor_data),
@@ -147,6 +153,11 @@ public:
   const AdaptedAction<create_action::RotateAngle> rotate;
   const AdaptedAction<create_action::Undock> undock;
 
+  const create_msg::IrIntensityVector::ConstSharedPtr &getCliffIntensityVector() const
+  {
+    return latest_cliff_intensity_;
+  }
+
   const create_msg::IrIntensityVector::ConstSharedPtr &getIrIntensityVector() const
   {
     return latest_ir_intensity_;
@@ -158,6 +169,11 @@ public:
   }
 
 private:
+  void onCliffIntensity(const create_msg::IrIntensityVector::ConstSharedPtr &msg)
+  {
+    latest_cliff_intensity_ = msg;
+  }
+
   void onIrIntensity(const create_msg::IrIntensityVector::ConstSharedPtr &msg)
   {
     latest_ir_intensity_ = msg;
@@ -169,9 +185,11 @@ private:
   }
 
   rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub_;
-  rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
+  rclcpp::Subscription<create_msg::IrIntensityVector>::SharedPtr cliff_intensity_sub_;
   rclcpp::Subscription<create_msg::IrIntensityVector>::SharedPtr ir_intensity_sub_;
+  rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
 
+  create_msg::IrIntensityVector::ConstSharedPtr latest_cliff_intensity_;
   create_msg::IrIntensityVector::ConstSharedPtr latest_ir_intensity_;
   nav_msgs::msg::Odometry::ConstSharedPtr latest_odom_;
 };
@@ -309,6 +327,27 @@ public:
   kj::Promise<void> undock(UndockContext context) override
   {
     return node_->undock(create_action::Undock::Goal {}).ignoreResult();
+  }
+
+  kj::Promise<void> getCliffIntensityVector(GetCliffIntensityVectorContext context) override
+  {
+    auto response = context.getResults();
+
+    const auto cliff_intensity = node_->getCliffIntensityVector();
+
+    const auto readings = cliff_intensity->readings;
+
+    auto cliff_intensity_vector = response.initCliffIntensityVector(readings.size());
+
+    for (size_t i = 0; i < readings.size(); ++i)
+    {
+      const double timestamp = readings[i].header.stamp.sec + readings[i].header.stamp.nanosec / 1e9;
+      cliff_intensity_vector[i].setFrameId(readings[i].header.frame_id);
+      cliff_intensity_vector[i].setTimestamp(timestamp);
+      cliff_intensity_vector[i].setIntensity(readings[i].value);
+    }
+
+    return kj::READY_NOW;
   }
 
   kj::Promise<void> getIrIntensityVector(GetIrIntensityVectorContext context) override

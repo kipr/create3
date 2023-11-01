@@ -65,6 +65,7 @@ namespace client
       void navigateTo(const double x, const double y, const float max_linear_speed, const float max_angular_speed);
       void followWall(const Follow follow, const float max_seconds);
 
+      IrIntensityVector getCliffIntensityVector() const;
       IrIntensityVector getIrIntensityVector() const;
       Odometry getOdometry() const;
 
@@ -75,9 +76,12 @@ namespace client
 
       mutable std::mutex wait_mut_;
 
+      mutable std::mutex latest_cliff_intensity_vector_mut_;
+      mutable std::optional<Stamped<IrIntensityVector>> latest_cliff_intensity_vector_;
+
       mutable std::mutex latest_ir_intensity_vector_mut_;
       mutable std::optional<Stamped<IrIntensityVector>> latest_ir_intensity_vector_;
-      
+
       mutable std::mutex latest_odometry_mut_;
       mutable std::optional<Stamped<Odometry>> latest_odometry_;
   };

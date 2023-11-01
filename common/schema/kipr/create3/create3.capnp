@@ -66,6 +66,7 @@ interface Create3 {
   navigateTo @8 (pose :Pose, maxLinearSpeed :Float32, maxAngularSpeed :Float32, achieveGoalHeading :Bool);
   followWall @9 (follow :Int8, maxSeconds :Float32);
 
-  getIrIntensityVector @10 () -> (irIntensityVector :List(IrIntensity));
-  getOdometry @11 () -> (pose :Pose, velocity :Twist);
+  getCliffIntensityVector @10 () -> (cliffIntensityVector :List(IrIntensity));
+  getIrIntensityVector @11 () -> (irIntensityVector :List(IrIntensity));
+  getOdometry @12 () -> (pose :Pose, velocity :Twist);
 }

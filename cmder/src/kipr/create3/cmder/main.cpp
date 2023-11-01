@@ -48,7 +48,8 @@ enum class Mode
   SetVelocity,
   Undock,
   Dock,
-  IrIntensityVector,
+  CliffIntensity,
+  IrIntensity,
   Odometry,
   NavigateTo,
   Rotate,
@@ -117,7 +118,8 @@ int main(int argc, char *argv[])
         (command("set_velocity") >> set(mode, Mode::SetVelocity), value("linear_x") >> set(linear_x), value("angular_z") >> set(angular_z)) |
         (command("undock") >> set(mode, Mode::Undock)) |
         (command("dock") >> set(mode, Mode::Dock)) |
-        (command("irIntensityVector") >> set(mode, Mode::IrIntensityVector)) |
+        (command("irIntensity") >> set(mode, Mode::IrIntensity)) |
+        (command("cliffIntensity") >> set(mode, Mode::CliffIntensity)) |
         (command("odometry") >> set(mode, Mode::Odometry)) |
         (
           command("led_animation") >> set(mode, Mode::LedAnimation), 
@@ -204,11 +206,24 @@ int main(int argc, char *argv[])
       );
       break;
     }
-    case Mode::IrIntensityVector:
+    case Mode::CliffIntensity:
+    {
+      const auto cliff_intensity_vector = init_client().getCliffIntensityVector();
+      std::cout
+        << "CliffIntensity:" << std::endl
+        << "  size: " << cliff_intensity_vector.size() << std::endl;
+      for (std::size_t i = 0; i < cliff_intensity_vector.size(); ++i)
+      {
+        std::cout 
+          << "  " << i << " (" << cliff_intensity_vector[i].frameId << ")  :" << cliff_intensity_vector[i].intensity << std::endl;
+      }
+      break;
+    }
+    case Mode::IrIntensity:
     {
       const auto ir_intensity_vector = init_client().getIrIntensityVector();
       std::cout
-        << "IrIntensityVector:" << std::endl
+        << "IrIntensity:" << std::endl
         << "  size: " << ir_intensity_vector.size() << std::endl;
       for (std::size_t i = 0; i < ir_intensity_vector.size(); ++i)
       {

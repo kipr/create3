@@ -225,6 +225,40 @@ void Client::followWall(const Follow follow, const float max_seconds)
   impl_->last_waitable = request.send().ignoreResult();
 }
 
+IrIntensityVector Client::getCliffIntensityVector() const
+{
+  using namespace std::chrono;
+  using namespace std::chrono_literals;
+
+  {
+    std::lock_guard<std::mutex> lock(latest_cliff_intensity_vector_mut_);
+    // Odometry remains valid for 10 milliseconds
+    if (latest_cliff_intensity_vector_ && latest_cliff_intensity_vector_->at > system_clock::now().time_since_epoch() - 10ms)
+    {
+      return latest_cliff_intensity_vector_->value;
+    }
+  }
+
+  auto request = impl_->create3Client().getCliffIntensityVectorRequest();
+  const auto response = request.send().wait(impl_->waitScope());
+
+  const auto cliff_intensity_vector = response.getCliffIntensityVector();
+  std::cout << "cliff_intensity_vector.size(): " << cliff_intensity_vector.size() << std::endl;
+  IrIntensityVector result;
+  for(size_t i = 0; i < cliff_intensity_vector.size(); ++i)
+  {
+    const auto cliff_intensity = cliff_intensity_vector[i];
+    IrIntensity cliff_intensity_;
+    cliff_intensity_.frameId = cliff_intensity.getFrameId().cStr();
+    cliff_intensity_.intensity = cliff_intensity.getIntensity();
+    cliff_intensity_.timestamp = cliff_intensity.getTimestamp();
+    result.push_back(cliff_intensity_);
+  }
+
+  return result;
+
+}
+
 IrIntensityVector Client::getIrIntensityVector() const
 {
   using namespace std::chrono;
@@ -243,17 +277,16 @@ IrIntensityVector Client::getIrIntensityVector() const
   const auto response = request.send().wait(impl_->waitScope());
 
   const auto ir_intensity_vector = response.getIrIntensityVector();
-
+  std::cout << "ir_intensity_vector.size(): " << ir_intensity_vector.size() << std::endl;
   IrIntensityVector result;
-  result.reserve(ir_intensity_vector.size());
-
   for(size_t i = 0; i < ir_intensity_vector.size(); ++i)
   {
     const auto ir_intensity = ir_intensity_vector[i];
-    result[i] = IrIntensity {
-      .frameId = ir_intensity.getFrameId().cStr(),
-      .intensity = ir_intensity.getIntensity()
-    };
+    IrIntensity ir_intensity_;
+    ir_intensity_.frameId = ir_intensity.getFrameId().cStr();
+    ir_intensity_.intensity = ir_intensity.getIntensity();
+    ir_intensity_.timestamp = ir_intensity.getTimestamp();
+    result.push_back(ir_intensity_);
   }
 
   return result;
