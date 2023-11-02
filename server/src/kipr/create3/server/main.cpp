@@ -144,7 +144,7 @@ public:
     cmd_vel_pub_->publish(velocity);
     return kj::READY_NOW;
   }
-
+  
   const AdaptedAction<create_action::Dock> dock;
   const AdaptedAction<create_action::DriveArc> drive_arc;
   const AdaptedAction<create_action::DriveDistance> drive_distance;
@@ -185,6 +185,7 @@ private:
   }
 
   rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub_;
+  
   rclcpp::Subscription<create_msg::IrIntensityVector>::SharedPtr cliff_intensity_sub_;
   rclcpp::Subscription<create_msg::IrIntensityVector>::SharedPtr ir_intensity_sub_;
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
