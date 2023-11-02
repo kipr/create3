@@ -24,8 +24,13 @@ int main()
   printf("  Right Front IR: %d\n", create3_sensor_ir(5));
   printf("  Right IR: %d\n", create3_sensor_ir(6));
 
-  while(create3_sensor_bump == 0) {
-    create3_velocity_set_components(0.15, 0);
+  printf("  Left Bumper: %d\n", create3_sensor_bump(0));
+  printf("  Left Front Bumper: %d\n", create3_sensor_bump(1));
+  printf("  Right Front Bumper: %d\n", create3_sensor_bump(2));
+  printf("  Right Bumper: %d\n", create3_sensor_bump(3));
+
+  while(create3_sensor_bump(2) == 0 && create3_sensor_bump(1) == 0) {
+    create3_velocity_set_components(0.15, 0.0);
   }
 
   

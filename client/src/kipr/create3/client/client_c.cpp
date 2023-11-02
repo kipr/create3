@@ -347,20 +347,24 @@ int create3_sensor_bump(int sensor_id)
   }
 
   HazardDetectionVector hazardSensors = global_client->getHazardDetectionVector();
-  for(const auto& hazardSensor : hazardSensors)
+  size_t hazard_num = hazardSensors.size();
+  if(hazard_num == 0)
+    return 0;
+  for(size_t i = 0; i < hazard_num; i++)
   {
-    if(hazardSensor.type != 1)
+    hazardSensors[i].type;
+    if(hazardSensors[i].type != 1)
       continue;
     else {
       switch (sensor_id) {
         case Create3BumpSensorLeft:
-          return strcmp(hazardSensor.frameId, "bump_left") == 1;
+          return strcmp(hazardSensors[i].frameId , "bump_left") == 0;
         case Create3BumpSensorFrontLeft:
-          return strcmp(hazardSensor.frameId, "bump_front_left") == 1;
+          return strcmp(hazardSensors[i].frameId, "bump_front_left") == 0;
         case Create3BumpSensorFrontRight:
-          return strcmp(hazardSensor.frameId, "bump_front_right") == 1;
+          return strcmp(hazardSensors[i].frameId, "bump_front_right") == 0;
         case Create3BumpSensorRight:
-          return strcmp(hazardSensor.frameId, "bump_right") == 1;
+          return strcmp(hazardSensors[i].frameId, "bump_right") == 0;
         default:
           return 0;
       }

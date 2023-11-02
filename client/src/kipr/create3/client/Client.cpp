@@ -275,6 +275,10 @@ HazardDetectionVector Client::getHazardDetectionVector() const
 
   const auto hazard_detection_vector = response.getHazardDetectionVector();
   HazardDetectionVector result;
+  if(hazard_detection_vector.size() == 0)
+  {
+    return result;
+  }
   for(size_t i = 0; i < hazard_detection_vector.size(); ++i)
   {
     const auto hazard_detection = hazard_detection_vector[i];
@@ -284,6 +288,8 @@ HazardDetectionVector Client::getHazardDetectionVector() const
     hazard_detection_.timestamp = hazard_detection.getTimestamp();
     result.push_back(hazard_detection_);
   }
+
+  return result;
 }
 
 IrIntensityVector Client::getIrIntensityVector() const
