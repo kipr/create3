@@ -421,20 +421,20 @@ void create3_undock();
 Create3Twist create3_velocity_get();
 
 /**
- * @brief Get the linear X velocity of the iRobot Create 3.
- * @details This is equivalent to calling `create3_velocity_get().linear_x`.
- * 
- * @return The linear X velocity in meters per second.
- */
-double create3_velocity_get_linear_x();
-
-/**
  * @brief Get the angular Z velocity of the iRobot Create 3.
  * @details This is equivalent to calling `create3_velocity_get().angular_z`.
  * 
  * @return The angular Z velocity in radians per second.
  */
 double create3_velocity_get_angular_z();
+
+/**
+ * @brief Get the linear X velocity of the iRobot Create 3.
+ * @details This is equivalent to calling `create3_velocity_get().linear_x`.
+ * 
+ * @return The linear X velocity in meters per second.
+ */
+double create3_velocity_get_linear_x();
 
 /**
  * @brief Set the velocity of the iRobot Create 3.
