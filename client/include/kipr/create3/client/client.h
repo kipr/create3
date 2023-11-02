@@ -192,7 +192,7 @@ void create3_led_animation(const Create3LedAnimationType animation_type, const C
  * 
  * @return The LED color.
  */
-Create3LedColor create3_led_color(const uint8_t r, const uint8_t g, const uint8_t b);
+Create3LedColor create3_led_color(const int r, const int g, const int b);
 
 /**
  * @brief Create a light ring from the given LED colors.
@@ -403,6 +403,12 @@ void create3_rotate_radians(
   const float angle,
   const float max_angular_speed
 );
+
+int create3_sensor_bump(int sensor_id);
+
+int create3_sensor_cliff(int sensor_id);
+
+int create3_sensor_ir(int sensor_id);
 
 /**
  * @brief Undock the iRobot Create 3 from the Home Base.

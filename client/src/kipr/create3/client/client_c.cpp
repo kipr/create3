@@ -2,6 +2,7 @@
 #include "kipr/create3/client/Client.hpp"
 #include "kipr/create3/client/Duration.hpp"
 #include "kipr/create3/client/euler.h"
+#include "kipr/create3/client/IrIntensityVector.hpp"
 #include "kipr/create3/client/LedAnimationType.hpp"
 #include "kipr/create3/client/LedColor.hpp"
 #include "kipr/create3/client/Lightring.hpp"
@@ -190,6 +191,14 @@ void create3_led_animation(const Create3LedAnimationType animation_type, const C
   global_client->ledAnimation(animation_type, lightring, duration);
 }
 
+Create3LedColor create3_led_color(const int r, const int g, const int b) {
+  Create3LedColor color;
+  color.r = (uint8_t) r;
+  color.g = (uint8_t) g;
+  color.b = (uint8_t) b;
+  return color;
+}
+
 void create3_navigate_to_pose(const Create3Pose pose, const float max_linear_speed, const float max_angular_speed, const int achieve_goal_heading)
 {
   std::lock_guard<std::mutex> lock(global_client_mut);
@@ -323,6 +332,28 @@ void create3_rotate_radians(const float angle, const float max_angular_speed)
   }
 
   global_client->rotate(angle, max_angular_speed);
+}
+
+int create3_sensor_cliff(int sensor_id) {
+  std::lock_guard<std::mutex> lock(global_client_mut);
+  if (!global_client) {
+    std::cerr << __func__ << ": not connected" << std::endl;
+    return 0;
+  }
+  
+  IrIntensityVector cliffSensors = global_client->getCliffIntensityVector();
+  return (int) cliffSensors[sensor_id].intensity;
+}
+
+int create3_sensor_ir(int sensor_id) {
+  std::lock_guard<std::mutex> lock(global_client_mut);
+  if (!global_client) {
+    std::cerr << __func__ << ": not connected" << std::endl;
+    return 0;
+  }
+  
+  IrIntensityVector irSensors = global_client->getIrIntensityVector();
+  return (int) irSensors[sensor_id].intensity;
 }
 
 void create3_undock()
