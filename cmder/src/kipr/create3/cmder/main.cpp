@@ -4,7 +4,6 @@
 #include <kipr/create3/client/Vector3.hpp>
 #include <kipr/create3/client/Quaternion.hpp>
 #include <kipr/create3/client/LedAnimationType.hpp>
-#include <kipr/create3/client/AudioNote.hpp>
 
 #include <clipp.h>
 #include <iostream>
@@ -47,9 +46,10 @@ std::string programName(const char *const argv0)
 enum class Mode
 {
   SetVelocity,
-  PlayAudio,
   Undock,
   Dock,
+  CliffIntensity,
+  IrIntensity,
   Odometry,
   NavigateTo,
   Rotate,
@@ -86,10 +86,6 @@ int main(int argc, char *argv[])
   double linear_x = 0.0;
   double angular_z = 0.0;
 
-  int audio_note_count = 0;
-  AudioNote audio_notes[256];
-  bool overwrite = false;
-
   float navigate_to_x = 0.0;
   float navigate_to_y = 0.0;
   float navigate_to_theta = NAN;
@@ -120,21 +116,10 @@ int main(int argc, char *argv[])
       option("--address", "-a") & value("host:port") % "The server's address" >> set(address),
       (
         (command("set_velocity") >> set(mode, Mode::SetVelocity), value("linear_x") >> set(linear_x), value("angular_z") >> set(angular_z)) |
-        (
-          command("play_audio") >> set(mode, Mode::PlayAudio),
-          repeatable(
-            value("frequency") >> [&](const uint16_t frequency) {
-              audio_notes[audio_note_count].frequency = frequency;
-            },
-            value("seconds") >> [&](const double seconds) {
-              audio_notes[audio_note_count].seconds = seconds;
-              ++audio_note_count;
-            }
-          ),
-          option("overwrite") >> set(overwrite)
-        ) |
         (command("undock") >> set(mode, Mode::Undock)) |
         (command("dock") >> set(mode, Mode::Dock)) |
+        (command("irIntensity") >> set(mode, Mode::IrIntensity)) |
+        (command("cliffIntensity") >> set(mode, Mode::CliffIntensity)) |
         (command("odometry") >> set(mode, Mode::Odometry)) |
         (
           command("led_animation") >> set(mode, Mode::LedAnimation), 
@@ -196,9 +181,6 @@ int main(int argc, char *argv[])
         .angular_z = angular_z
       });
       break;
-    case Mode::PlayAudio:
-      init_client().playAudio(audio_notes, audio_note_count, overwrite);
-      break;
     case Mode::Dock:
       init_client().dock();
       break;
@@ -224,6 +206,33 @@ int main(int argc, char *argv[])
       );
       break;
     }
+    case Mode::CliffIntensity:
+    {
+      const auto cliff_intensity_vector = init_client().getCliffIntensityVector();
+      std::cout
+        << "CliffIntensity:" << std::endl
+        << "  size: " << cliff_intensity_vector.size() << std::endl;
+      for (std::size_t i = 0; i < cliff_intensity_vector.size(); ++i)
+      {
+        std::cout 
+          << "  " << i << " (" << cliff_intensity_vector[i].frameId << ")  :" << cliff_intensity_vector[i].intensity << std::endl;
+      }
+      break;
+    }
+    case Mode::IrIntensity:
+    {
+      const auto ir_intensity_vector = init_client().getIrIntensityVector();
+      std::cout
+        << "IrIntensity:" << std::endl
+        << "  size: " << ir_intensity_vector.size() << std::endl;
+      for (std::size_t i = 0; i < ir_intensity_vector.size(); ++i)
+      {
+        std::cout 
+          << "  " << i << " (" << ir_intensity_vector[i].frameId << ")  :" << ir_intensity_vector[i].intensity << std::endl;
+      }
+      break;
+    }
+
     case Mode::Odometry:
     {
       const auto odometry = init_client().getOdometry();

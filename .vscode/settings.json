@@ -7,7 +7,6 @@
     "${workspaceFolder}/client/include",
     "${workspaceFolder}/server/include",
     "${workspaceFolder}/build/common/schema",
-    // ROS2-specific includes
     "/opt/ros/humble/include/rosidl_typesupport_interface",
     "/opt/ros/humble/include/rcl_yaml_param_parser",
     "/opt/ros/humble/include/builtin_interfaces",
@@ -29,6 +28,7 @@
     "/opt/ros/humble/include/action_msgs",
     "/opt/ros/humble/include/nav_msgs",
     "/opt/ros/humble/include/rcl_action",
+    "/opt/ros/humble/include/irobot_create_msgs"
   ],
   "files.associations": {
     "*.page": "json",

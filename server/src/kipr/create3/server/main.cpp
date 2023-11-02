@@ -17,10 +17,9 @@
 #include <irobot_create_msgs/action/undock.hpp>
 #include <irobot_create_msgs/action/wall_follow.hpp>
 
+#include <irobot_create_msgs/msg/ir_intensity_vector.hpp>
 #include <irobot_create_msgs/msg/led_color.hpp>
 #include <irobot_create_msgs/msg/wheel_vels.hpp>
-#include <irobot_create_msgs/msg/audio_note.hpp>
-#include <irobot_create_msgs/msg/audio_note_vector.hpp>
 
 #include <kipr/create3/create3.capnp.h>
 #include <capnp/ez-rpc.h>
@@ -103,7 +102,7 @@ AdaptedAction<T> adaptAction(const typename std::shared_ptr<rclcpp_action::Clien
 namespace create_action = irobot_create_msgs::action;
 namespace create_msg = irobot_create_msgs::msg;
 
-rclcpp_action::Client<create_action::Dock>::WrappedResult dock;
+// rclcpp_action::Client<create_action::Dock>::WrappedResult dock;
 
 class Create3Node : public rclcpp::Node
 {
@@ -119,8 +118,19 @@ public:
     , undock(adaptAction(rclcpp_action::create_client<create_action::Undock>(this, "undock")))
 
     , cmd_vel_pub_(create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10))
-    , cmd_audio_pub_(create_publisher<create_msg::AudioNoteVector>("cmd_audio", 10))
 
+    , cliff_intensity_sub_(create_subscription<create_msg::IrIntensityVector>(
+        "cliff_intensity",
+        rclcpp::QoS(rclcpp::KeepLast(10), rmw_qos_profile_sensor_data),
+        std::bind(&Create3Node::onCliffIntensity, this, std::placeholders::_1)
+      ))
+
+    , ir_intensity_sub_(create_subscription<create_msg::IrIntensityVector>(
+        "ir_intensity",
+        rclcpp::QoS(rclcpp::KeepLast(10), rmw_qos_profile_sensor_data),
+        std::bind(&Create3Node::onIrIntensity, this, std::placeholders::_1)
+      ))        
+        
     , odom_sub_(create_subscription<nav_msgs::msg::Odometry>(
         "odom",
         rclcpp::QoS(rclcpp::KeepLast(10), rmw_qos_profile_sensor_data),
@@ -134,13 +144,7 @@ public:
     cmd_vel_pub_->publish(velocity);
     return kj::READY_NOW;
   }
-
-  kj::Promise<void> playAudio(const create_msg::AudioNoteVector &notes)
-  {
-    cmd_audio_pub_->publish(notes);
-    return kj::READY_NOW;
-  }
-
+  
   const AdaptedAction<create_action::Dock> dock;
   const AdaptedAction<create_action::DriveArc> drive_arc;
   const AdaptedAction<create_action::DriveDistance> drive_distance;
@@ -149,21 +153,45 @@ public:
   const AdaptedAction<create_action::RotateAngle> rotate;
   const AdaptedAction<create_action::Undock> undock;
 
+  const create_msg::IrIntensityVector::ConstSharedPtr &getCliffIntensityVector() const
+  {
+    return latest_cliff_intensity_;
+  }
+
+  const create_msg::IrIntensityVector::ConstSharedPtr &getIrIntensityVector() const
+  {
+    return latest_ir_intensity_;
+  }
+
   const nav_msgs::msg::Odometry::ConstSharedPtr &getOdometry() const
   {
     return latest_odom_;
   }
 
 private:
+  void onCliffIntensity(const create_msg::IrIntensityVector::ConstSharedPtr &msg)
+  {
+    latest_cliff_intensity_ = msg;
+  }
+
+  void onIrIntensity(const create_msg::IrIntensityVector::ConstSharedPtr &msg)
+  {
+    latest_ir_intensity_ = msg;
+  }
+  
   void onOdom(const nav_msgs::msg::Odometry::ConstSharedPtr &msg)
   {
     latest_odom_ = msg;
   }
 
   rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub_;
-  rclcpp::Publisher<create_msg::AudioNoteVector>::SharedPtr cmd_audio_pub_;
+  
+  rclcpp::Subscription<create_msg::IrIntensityVector>::SharedPtr cliff_intensity_sub_;
+  rclcpp::Subscription<create_msg::IrIntensityVector>::SharedPtr ir_intensity_sub_;
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
 
+  create_msg::IrIntensityVector::ConstSharedPtr latest_cliff_intensity_;
+  create_msg::IrIntensityVector::ConstSharedPtr latest_ir_intensity_;
   nav_msgs::msg::Odometry::ConstSharedPtr latest_odom_;
 };
 
@@ -193,30 +221,6 @@ public:
     cmd_vel.angular.z = velocity.getAngularZ();
 
     return node_->setVelocity(cmd_vel);
-  }
-
-  kj::Promise<void> playAudio(PlayAudioContext context) override
-  {
-    auto params = context.getParams();
-    auto notes = params.getNotes();
-    auto overwrite = params.getOverwrite();
-
-    const size_t count = (int) notes.size();
-
-    create_msg::AudioNoteVector cmd_notes;
-    std::vector<create_msg::AudioNote> notes_;
-    int index = 0;
-
-    for(const auto &note : notes)
-    {
-      notes_[index].frequency = note.getFrequency();
-      notes_[index].max_runtime = rclcpp::Duration(note.getDuration().getSeconds(), note.getDuration().getNanoseconds());
-      index++;
-    }
-    cmd_notes.notes = notes_;
-    cmd_notes.append = overwrite;
-
-    return node_->playAudio(cmd_notes);
   }
 
   kj::Promise<void> dock(DockContext context) override
@@ -324,6 +328,48 @@ public:
   kj::Promise<void> undock(UndockContext context) override
   {
     return node_->undock(create_action::Undock::Goal {}).ignoreResult();
+  }
+
+  kj::Promise<void> getCliffIntensityVector(GetCliffIntensityVectorContext context) override
+  {
+    auto response = context.getResults();
+
+    const auto cliff_intensity = node_->getCliffIntensityVector();
+
+    const auto readings = cliff_intensity->readings;
+
+    auto cliff_intensity_vector = response.initCliffIntensityVector(readings.size());
+
+    for (size_t i = 0; i < readings.size(); ++i)
+    {
+      const double timestamp = readings[i].header.stamp.sec + readings[i].header.stamp.nanosec / 1e9;
+      cliff_intensity_vector[i].setFrameId(readings[i].header.frame_id);
+      cliff_intensity_vector[i].setTimestamp(timestamp);
+      cliff_intensity_vector[i].setIntensity(readings[i].value);
+    }
+
+    return kj::READY_NOW;
+  }
+
+  kj::Promise<void> getIrIntensityVector(GetIrIntensityVectorContext context) override
+  {
+    auto response = context.getResults();
+
+    const auto ir_intensity = node_->getIrIntensityVector();
+
+    const auto readings = ir_intensity->readings;
+
+    auto ir_intensity_vector = response.initIrIntensityVector(readings.size());
+
+    for (size_t i = 0; i < readings.size(); ++i)
+    {
+      const double timestamp = readings[i].header.stamp.sec + readings[i].header.stamp.nanosec / 1e9;
+      ir_intensity_vector[i].setFrameId(readings[i].header.frame_id);
+      ir_intensity_vector[i].setTimestamp(timestamp);
+      ir_intensity_vector[i].setIntensity(readings[i].value);
+    }
+
+    return kj::READY_NOW;
   }
 
   kj::Promise<void> getOdometry(GetOdometryContext context) override

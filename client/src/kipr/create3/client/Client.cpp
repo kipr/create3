@@ -6,6 +6,7 @@
 #include <chrono>
 #include <iostream>
 #include <cmath>
+#include <string>
 
 #include "kipr/create3/client/ClientImpl.hpp"
 
@@ -60,28 +61,6 @@ void Client::setVelocity(const Twist &velocity)
   auto velocityBuilder = request.initVelocity();
   velocityBuilder.setLinearX(velocity.linear_x);
   velocityBuilder.setAngularZ(velocity.angular_z);
-
-  std::lock_guard<std::mutex> lock(wait_mut_);
-  impl_->last_waitable = request.send().ignoreResult();
-}
-
-void Client::playAudio(const AudioNote *const notes, const std::size_t count, const bool overwrite)
-{
-  wait();
-
-  auto request = impl_->create3Client().playAudioRequest();
-  auto notesBuilder = request.initNotes(count);
-
-  for (std::size_t i = 0; i < count; ++i)
-  {
-    notesBuilder[i].setFrequency(notes[i].frequency);
-    auto durationBuilder = notesBuilder[i].initDuration();
-    Create3Duration duration = create3_duration_from_double(notes[i].seconds);
-    durationBuilder.setSeconds(duration.seconds);
-    durationBuilder.setNanoseconds(duration.nanoseconds);
-  }
-  
-  request.setOverwrite(overwrite);
 
   std::lock_guard<std::mutex> lock(wait_mut_);
   impl_->last_waitable = request.send().ignoreResult();
@@ -244,6 +223,69 @@ void Client::followWall(const Follow follow, const float max_seconds)
 
   std::lock_guard<std::mutex> lock(wait_mut_);
   impl_->last_waitable = request.send().ignoreResult();
+}
+
+IrIntensityVector Client::getCliffIntensityVector() const
+{
+  using namespace std::chrono;
+  using namespace std::chrono_literals;
+
+  {
+    std::lock_guard<std::mutex> lock(latest_cliff_intensity_vector_mut_);
+    if (latest_cliff_intensity_vector_ && latest_cliff_intensity_vector_->at > system_clock::now().time_since_epoch() - 10ms)
+    {
+      return latest_cliff_intensity_vector_->value;
+    }
+  }
+
+  auto request = impl_->create3Client().getCliffIntensityVectorRequest();
+  const auto response = request.send().wait(impl_->waitScope());
+
+  const auto cliff_intensity_vector = response.getCliffIntensityVector();
+  IrIntensityVector result;
+  for(size_t i = 0; i < cliff_intensity_vector.size(); ++i)
+  {
+    const auto cliff_intensity = cliff_intensity_vector[i];
+    IrIntensity cliff_intensity_;
+    cliff_intensity_.frameId = cliff_intensity.getFrameId().cStr();
+    cliff_intensity_.intensity = cliff_intensity.getIntensity();
+    cliff_intensity_.timestamp = cliff_intensity.getTimestamp();
+    result.push_back(cliff_intensity_);
+  }
+
+  return result;
+
+}
+
+IrIntensityVector Client::getIrIntensityVector() const
+{
+  using namespace std::chrono;
+  using namespace std::chrono_literals;
+
+  {
+    std::lock_guard<std::mutex> lock(latest_ir_intensity_vector_mut_);
+    if (latest_ir_intensity_vector_ && latest_ir_intensity_vector_->at > system_clock::now().time_since_epoch() - 10ms)
+    {
+      return latest_ir_intensity_vector_->value;
+    }
+  }
+
+  auto request = impl_->create3Client().getIrIntensityVectorRequest();
+  const auto response = request.send().wait(impl_->waitScope());
+
+  const auto ir_intensity_vector = response.getIrIntensityVector();
+  IrIntensityVector result;
+  for(size_t i = 0; i < ir_intensity_vector.size(); ++i)
+  {
+    const auto ir_intensity = ir_intensity_vector[i];
+    IrIntensity ir_intensity_;
+    ir_intensity_.frameId = ir_intensity.getFrameId().cStr();
+    ir_intensity_.intensity = ir_intensity.getIntensity();
+    ir_intensity_.timestamp = ir_intensity.getTimestamp();
+    result.push_back(ir_intensity_);
+  }
+
+  return result;
 }
 
 Odometry Client::getOdometry() const

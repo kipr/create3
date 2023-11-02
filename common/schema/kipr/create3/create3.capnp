@@ -13,11 +13,6 @@ struct Duration {
   nanoseconds @1 :UInt32;
 }
 
-struct AudioNote {
-  frequency @0 :UInt16;
-  duration @1 :Duration;
-}
-
 struct LedColor {
   r @0 :UInt8;
   g @1 :UInt8;
@@ -31,6 +26,12 @@ struct Lightring {
   led3 @3 :LedColor;
   led4 @4 :LedColor;
   led5 @5 :LedColor;
+}
+
+struct IrIntensity {
+  frameId @0 :Text;
+  timestamp @1 :Float64;
+  intensity @2 :Int16;
 }
 
 struct Quaternion {
@@ -54,17 +55,18 @@ struct Pose {
 interface Create3 {
   isConnected @0 () -> (connected :Bool);
   setVelocity @1 (velocity :Twist);
-  playAudio @2 (notes :List(AudioNote), overwrite :Bool);
 
-  dock @3 ();
-  undock @4 ();
+  dock @2 ();
+  undock @3 ();
 
-  driveDistance @5 (distance :Float32, maxLinearSpeed :Float32);
-  driveArc @6 (direction :Int8, radius :Float32, angle :Float32, maxLinearSpeed :Float32);
-  ledAnimation @7 (animationType: Int8, lightring: Lightring, duration: Duration);
-  rotate @8 (angle :Float32, maxAngularSpeed :Float32);
-  navigateTo @9 (pose :Pose, maxLinearSpeed :Float32, maxAngularSpeed :Float32, achieveGoalHeading :Bool);
-  followWall @10 (follow :Int8, maxSeconds :Float32);
+  driveDistance @4 (distance :Float32, maxLinearSpeed :Float32);
+  driveArc @5 (direction :Int8, radius :Float32, angle :Float32, maxLinearSpeed :Float32);
+  ledAnimation @6 (animationType: Int8, lightring: Lightring, duration: Duration);
+  rotate @7 (angle :Float32, maxAngularSpeed :Float32);
+  navigateTo @8 (pose :Pose, maxLinearSpeed :Float32, maxAngularSpeed :Float32, achieveGoalHeading :Bool);
+  followWall @9 (follow :Int8, maxSeconds :Float32);
 
-  getOdometry @11 () -> (pose :Pose, velocity :Twist);
+  getCliffIntensityVector @10 () -> (cliffIntensityVector :List(IrIntensity));
+  getIrIntensityVector @11 () -> (irIntensityVector :List(IrIntensity));
+  getOdometry @12 () -> (pose :Pose, velocity :Twist);
 }
