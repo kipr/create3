@@ -343,14 +343,14 @@ Create3Twist create3_velocity_get()
   return global_client->getOdometry().velocity;
 }
 
-double create3_velocity_get_linear_x()
-{
-  return create3_velocity_get().linear_x;
-}
-
 double create3_velocity_get_angular_z()
 {
   return create3_velocity_get().angular_z;
+}
+
+double create3_velocity_get_linear_x()
+{
+  return create3_velocity_get().linear_x;
 }
 
 void create3_velocity_set(const Create3Twist twist)
