@@ -17,6 +17,7 @@
 #include <irobot_create_msgs/action/undock.hpp>
 #include <irobot_create_msgs/action/wall_follow.hpp>
 
+#include <irobot_create_msgs/msg/hazard_detection_vector.hpp>
 #include <irobot_create_msgs/msg/ir_intensity_vector.hpp>
 #include <irobot_create_msgs/msg/led_color.hpp>
 #include <irobot_create_msgs/msg/wheel_vels.hpp>
@@ -125,6 +126,12 @@ public:
         std::bind(&Create3Node::onCliffIntensity, this, std::placeholders::_1)
       ))
 
+    , hazard_detection_sub_(create_subscription<create_msg::HazardDetectionVector>(
+        "hazard_detection",
+        rclcpp::QoS(rclcpp::KeepLast(10), rmw_qos_profile_sensor_data),
+        std::bind(&Create3Node::onHazardDetection, this, std::placeholders::_1)
+      ))
+
     , ir_intensity_sub_(create_subscription<create_msg::IrIntensityVector>(
         "ir_intensity",
         rclcpp::QoS(rclcpp::KeepLast(10), rmw_qos_profile_sensor_data),
@@ -153,6 +160,11 @@ public:
   const AdaptedAction<create_action::RotateAngle> rotate;
   const AdaptedAction<create_action::Undock> undock;
 
+  const create_msg::HazardDetectionVector::ConstSharedPtr &getHazardDetectionVector() const
+  {
+    return latest_hazard_detection_;
+  }
+
   const create_msg::IrIntensityVector::ConstSharedPtr &getCliffIntensityVector() const
   {
     return latest_cliff_intensity_;
@@ -174,6 +186,11 @@ private:
     latest_cliff_intensity_ = msg;
   }
 
+  void onHazardDetection(const create_msg::HazardDetectionVector::ConstSharedPtr &msg)
+  {
+    latest_hazard_detection_ = msg;
+  }
+
   void onIrIntensity(const create_msg::IrIntensityVector::ConstSharedPtr &msg)
   {
     latest_ir_intensity_ = msg;
@@ -186,10 +203,12 @@ private:
 
   rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub_;
   
+  rclcpp::Subscription<create_msg::HazardDetectionVector>::SharedPtr hazard_detection_sub_;
   rclcpp::Subscription<create_msg::IrIntensityVector>::SharedPtr cliff_intensity_sub_;
   rclcpp::Subscription<create_msg::IrIntensityVector>::SharedPtr ir_intensity_sub_;
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
 
+  create_msg::HazardDetectionVector::ConstSharedPtr latest_hazard_detection_;
   create_msg::IrIntensityVector::ConstSharedPtr latest_cliff_intensity_;
   create_msg::IrIntensityVector::ConstSharedPtr latest_ir_intensity_;
   nav_msgs::msg::Odometry::ConstSharedPtr latest_odom_;
@@ -346,6 +365,27 @@ public:
       cliff_intensity_vector[i].setFrameId(readings[i].header.frame_id);
       cliff_intensity_vector[i].setTimestamp(timestamp);
       cliff_intensity_vector[i].setIntensity(readings[i].value);
+    }
+
+    return kj::READY_NOW;
+  }
+
+  kj::Promise<void> getHazardDetectionVector(GetHazardDetectionVectorContext context) override
+  {
+    auto response = context.getResults();
+
+    const auto hazard_detection = node_->getHazardDetectionVector();
+
+    const auto detections = hazard_detection->detections;
+
+    auto hazard_detection_vector = response.initHazardDetectionVector(detections.size());
+
+    for (size_t i = 0; i < detections.size(); ++i)
+    {
+      const double timestamp = detections[i].header.stamp.sec + detections[i].header.stamp.nanosec / 1e9;
+      hazard_detection_vector[i].setFrameId(detections[i].header.frame_id);
+      hazard_detection_vector[i].setTimestamp(timestamp);
+      hazard_detection_vector[i].setType(detections[i].type);
     }
 
     return kj::READY_NOW;

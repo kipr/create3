@@ -257,6 +257,35 @@ IrIntensityVector Client::getCliffIntensityVector() const
 
 }
 
+HazardDetectionVector Client::getHazardDetectionVector() const
+{
+  using namespace std::chrono;
+  using namespace std::chrono_literals;
+
+  {
+    std::lock_guard<std::mutex> lock(latest_hazard_detection_vector_mut_);
+    if (latest_hazard_detection_vector_ && latest_hazard_detection_vector_->at > system_clock::now().time_since_epoch() - 10ms)
+    {
+      return latest_hazard_detection_vector_->value;
+    }
+  }
+
+  auto request = impl_->create3Client().getHazardDetectionVectorRequest();
+  const auto response = request.send().wait(impl_->waitScope());
+
+  const auto hazard_detection_vector = response.getHazardDetectionVector();
+  HazardDetectionVector result;
+  for(size_t i = 0; i < hazard_detection_vector.size(); ++i)
+  {
+    const auto hazard_detection = hazard_detection_vector[i];
+    HazardDetection hazard_detection_;
+    hazard_detection_.type = hazard_detection.getType();
+    hazard_detection_.frameId = hazard_detection.getFrameId().cStr();
+    hazard_detection_.timestamp = hazard_detection.getTimestamp();
+    result.push_back(hazard_detection_);
+  }
+}
+
 IrIntensityVector Client::getIrIntensityVector() const
 {
   using namespace std::chrono;

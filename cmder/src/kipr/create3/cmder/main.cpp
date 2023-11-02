@@ -49,6 +49,7 @@ enum class Mode
   Undock,
   Dock,
   CliffIntensity,
+  HazardDetection,
   IrIntensity,
   Odometry,
   NavigateTo,
@@ -118,6 +119,7 @@ int main(int argc, char *argv[])
         (command("set_velocity") >> set(mode, Mode::SetVelocity), value("linear_x") >> set(linear_x), value("angular_z") >> set(angular_z)) |
         (command("undock") >> set(mode, Mode::Undock)) |
         (command("dock") >> set(mode, Mode::Dock)) |
+        (command("hazardDetection") >> set(mode, Mode::HazardDetection)) |
         (command("irIntensity") >> set(mode, Mode::IrIntensity)) |
         (command("cliffIntensity") >> set(mode, Mode::CliffIntensity)) |
         (command("odometry") >> set(mode, Mode::Odometry)) |
@@ -218,6 +220,18 @@ int main(int argc, char *argv[])
           << "  " << i << " (" << cliff_intensity_vector[i].frameId << ")  :" << cliff_intensity_vector[i].intensity << std::endl;
       }
       break;
+    }
+    case Mode::HazardDetection:
+    {
+      const auto hazard_detection_vector = init_client().getHazardDetectionVector();
+      std::cout
+        << "HazardDetection:" << std::endl
+        << "  size: " << hazard_detection_vector.size() << std::endl;
+      for (std::size_t i = 0; i < hazard_detection_vector.size(); ++i)
+      {
+        std::cout 
+          << "  " << i << " (" << hazard_detection_vector[i].frameId << ")  :" << hazard_detection_vector[i].type << std::endl;
+      }
     }
     case Mode::IrIntensity:
     {

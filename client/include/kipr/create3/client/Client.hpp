@@ -8,9 +8,11 @@
 #include <optional>
 
 #include "AudioNote.hpp"
+#include "BumpSensor.hpp"
 #include "Direction.hpp"
 #include "Duration.hpp"
 #include "Follow.hpp"
+#include "HazardDetectionVector.hpp"
 #include "IrIntensityVector.hpp"
 #include "LedAnimationType.hpp"
 #include "LedColor.hpp"
@@ -65,6 +67,7 @@ namespace client
       void navigateTo(const double x, const double y, const float max_linear_speed, const float max_angular_speed);
       void followWall(const Follow follow, const float max_seconds);
 
+      HazardDetectionVector getHazardDetectionVector() const;
       IrIntensityVector getCliffIntensityVector() const;
       IrIntensityVector getIrIntensityVector() const;
       Odometry getOdometry() const;
@@ -78,6 +81,9 @@ namespace client
 
       mutable std::mutex latest_cliff_intensity_vector_mut_;
       mutable std::optional<Stamped<IrIntensityVector>> latest_cliff_intensity_vector_;
+
+      mutable std::mutex latest_hazard_detection_vector_mut_;
+      mutable std::optional<Stamped<HazardDetectionVector>> latest_hazard_detection_vector_;
 
       mutable std::mutex latest_ir_intensity_vector_mut_;
       mutable std::optional<Stamped<IrIntensityVector>> latest_ir_intensity_vector_;

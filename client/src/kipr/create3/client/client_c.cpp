@@ -1,7 +1,9 @@
+#include "kipr/create3/client/BumpSensor.hpp"
 #include "kipr/create3/client/client.h"
 #include "kipr/create3/client/Client.hpp"
 #include "kipr/create3/client/Duration.hpp"
 #include "kipr/create3/client/euler.h"
+#include "kipr/create3/client/HazardDetectionVector.hpp"
 #include "kipr/create3/client/IrIntensityVector.hpp"
 #include "kipr/create3/client/LedAnimationType.hpp"
 #include "kipr/create3/client/LedColor.hpp"
@@ -12,6 +14,7 @@
 #include <cmath>
 #include <iostream>
 #include <mutex>
+#include <string.h>
 #include <thread>
 
 namespace kipr
@@ -332,6 +335,38 @@ void create3_rotate_radians(const float angle, const float max_angular_speed)
   }
 
   global_client->rotate(angle, max_angular_speed);
+}
+
+int create3_sensor_bump(int sensor_id)
+{
+  std::lock_guard<std::mutex> lock(global_client_mut);
+  if (!global_client)
+  {
+    std::cerr << __func__ << ": not connected" << std::endl;
+    return 0;
+  }
+
+  HazardDetectionVector hazardSensors = global_client->getHazardDetectionVector();
+  for(const auto& hazardSensor : hazardSensors)
+  {
+    if(hazardSensor.type != 1)
+      continue;
+    else {
+      switch (sensor_id) {
+        case Create3BumpSensorLeft:
+          return strcmp(hazardSensor.frameId, "bump_left") == 1;
+        case Create3BumpSensorFrontLeft:
+          return strcmp(hazardSensor.frameId, "bump_front_left") == 1;
+        case Create3BumpSensorFrontRight:
+          return strcmp(hazardSensor.frameId, "bump_front_right") == 1;
+        case Create3BumpSensorRight:
+          return strcmp(hazardSensor.frameId, "bump_right") == 1;
+        default:
+          return 0;
+      }
+    }
+  }
+  return 0;
 }
 
 int create3_sensor_cliff(int sensor_id) {

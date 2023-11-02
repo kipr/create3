@@ -1,4 +1,5 @@
 add_library(${CMAKE_PROJECT_NAME}_client SHARED
+  src/kipr/create3/client/bump_sensor_c.cpp
   src/kipr/create3/client/client_c.cpp
   src/kipr/create3/client/Client.cpp
   src/kipr/create3/client/ClientImpl.cpp

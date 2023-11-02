@@ -28,6 +28,12 @@ struct Lightring {
   led5 @5 :LedColor;
 }
 
+struct HazardDetection {
+  type @0 :UInt8;
+  frameId @1 :Text;
+  timestamp @2 :Float64;
+}
+
 struct IrIntensity {
   frameId @0 :Text;
   timestamp @1 :Float64;
@@ -67,6 +73,7 @@ interface Create3 {
   followWall @9 (follow :Int8, maxSeconds :Float32);
 
   getCliffIntensityVector @10 () -> (cliffIntensityVector :List(IrIntensity));
-  getIrIntensityVector @11 () -> (irIntensityVector :List(IrIntensity));
-  getOdometry @12 () -> (pose :Pose, velocity :Twist);
+  getHazardDetectionVector @11 () -> (hazardDetectionVector :List(HazardDetection));
+  getIrIntensityVector @12 () -> (irIntensityVector :List(IrIntensity));
+  getOdometry @13 () -> (pose :Pose, velocity :Twist);
 }
