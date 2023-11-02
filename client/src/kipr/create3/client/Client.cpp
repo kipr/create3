@@ -232,7 +232,6 @@ IrIntensityVector Client::getCliffIntensityVector() const
 
   {
     std::lock_guard<std::mutex> lock(latest_cliff_intensity_vector_mut_);
-    // Odometry remains valid for 10 milliseconds
     if (latest_cliff_intensity_vector_ && latest_cliff_intensity_vector_->at > system_clock::now().time_since_epoch() - 10ms)
     {
       return latest_cliff_intensity_vector_->value;
@@ -243,7 +242,6 @@ IrIntensityVector Client::getCliffIntensityVector() const
   const auto response = request.send().wait(impl_->waitScope());
 
   const auto cliff_intensity_vector = response.getCliffIntensityVector();
-  std::cout << "cliff_intensity_vector.size(): " << cliff_intensity_vector.size() << std::endl;
   IrIntensityVector result;
   for(size_t i = 0; i < cliff_intensity_vector.size(); ++i)
   {
@@ -266,7 +264,6 @@ IrIntensityVector Client::getIrIntensityVector() const
 
   {
     std::lock_guard<std::mutex> lock(latest_ir_intensity_vector_mut_);
-    // Odometry remains valid for 10 milliseconds
     if (latest_ir_intensity_vector_ && latest_ir_intensity_vector_->at > system_clock::now().time_since_epoch() - 10ms)
     {
       return latest_ir_intensity_vector_->value;
@@ -277,7 +274,6 @@ IrIntensityVector Client::getIrIntensityVector() const
   const auto response = request.send().wait(impl_->waitScope());
 
   const auto ir_intensity_vector = response.getIrIntensityVector();
-  std::cout << "ir_intensity_vector.size(): " << ir_intensity_vector.size() << std::endl;
   IrIntensityVector result;
   for(size_t i = 0; i < ir_intensity_vector.size(); ++i)
   {

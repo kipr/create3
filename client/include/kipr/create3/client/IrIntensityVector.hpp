@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-// #include "ir_intensity_vector.h"
 #include "IrIntensity.hpp"
 
 namespace kipr
