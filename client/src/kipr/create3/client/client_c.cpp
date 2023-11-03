@@ -12,6 +12,7 @@
 #include "kipr/create3/client/Vector3.hpp"
 
 #include <cmath>
+#include <cstring>
 #include <iostream>
 #include <mutex>
 #include <string.h>
@@ -347,30 +348,49 @@ int create3_sensor_bump(int sensor_id)
   }
 
   HazardDetectionVector hazardSensors = global_client->getHazardDetectionVector();
+
   size_t hazard_num = hazardSensors.size();
   if(hazard_num == 0)
     return 0;
-  for(size_t i = 0; i < hazard_num; i++)
-  {
-    hazardSensors[i].type;
-    if(hazardSensors[i].type != 1)
+
+  for(const HazardDetection& hazardSensor: hazardSensors) {
+    if(hazardSensor.type != 1) {
       continue;
+    }
+    // std::cout << "hazardSensor.frameId: " << hazardSensor.frameId << std::endl;
+    if(create3_bump_sensor_to_string(sensor_id, hazardSensor.frameId) == 1) {
+      return 1;
+    }
     else {
-      switch (sensor_id) {
-        case Create3BumpSensorLeft:
-          return strcmp(hazardSensors[i].frameId , "bump_left") == 0;
-        case Create3BumpSensorFrontLeft:
-          return strcmp(hazardSensors[i].frameId, "bump_front_left") == 0;
-        case Create3BumpSensorFrontRight:
-          return strcmp(hazardSensors[i].frameId, "bump_front_right") == 0;
-        case Create3BumpSensorRight:
-          return strcmp(hazardSensors[i].frameId, "bump_right") == 0;
-        default:
-          return 0;
-      }
+      continue;
     }
   }
   return 0;
+
+  // size_t hazard_num = hazardSensors.size();
+  // if(hazard_num == 0)
+  //   return 0;
+  // for(size_t i = 0; i < hazard_num; i++)
+  // {
+  //   hazardSensors[i].type;
+  //   if(hazardSensors[i].type != 1)
+  //     continue;
+  //   else {
+  //     switch (sensor_id) {
+  //       case Create3BumpSensorLeft:
+  //         return strcmp(hazardSensors[i].frameId , "bump_left") == 0;
+  //       case Create3BumpSensorFrontLeft:
+  //         return strcmp(hazardSensors[i].frameId, "bump_front_left") == 0;
+  //       case Create3BumpSensorFrontRight:
+  //         return strcmp(hazardSensors[i].frameId, "bump_front_right") == 0;
+  //       case Create3BumpSensorRight:
+  //         return strcmp(hazardSensors[i].frameId, "bump_right") == 0;
+  //       default:
+  //         return 0;
+  //     }
+  //   }
+  // }
+  // return 0;
 }
 
 int create3_sensor_cliff(int sensor_id) {

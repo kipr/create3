@@ -26,13 +26,18 @@ int main()
 
   printf("  Left Bumper: %d\n", create3_sensor_bump(0));
   printf("  Left Front Bumper: %d\n", create3_sensor_bump(1));
-  printf("  Right Front Bumper: %d\n", create3_sensor_bump(2));
-  printf("  Right Bumper: %d\n", create3_sensor_bump(3));
+  printf("  Center Front Bumper: %d\n", create3_sensor_bump(2));
+  printf("  Right Front Bumper: %d\n", create3_sensor_bump(3));
+  printf("  Right Bumper: %d\n", create3_sensor_bump(4));
 
-  while(create3_sensor_bump(2) == 0 && create3_sensor_bump(1) == 0) {
+  
+  while(create3_sensor_bump(3) == 0) {
+    if(create3_sensor_bump(3) == 1) {
+      create3_velocity_set_components(0.0, 0.0);
+      break;
+    }
     create3_velocity_set_components(0.15, 0.0);
   }
-
   
 
   printf("Done!\n");

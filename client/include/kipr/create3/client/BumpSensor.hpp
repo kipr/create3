@@ -9,7 +9,7 @@ namespace kipr
   {
     namespace client
     {
-    using bumpSensor = Create3BumpSensor;
+    using BumpSensor = Create3BumpSensor;
     }
   }
 }

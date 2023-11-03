@@ -1,6 +1,10 @@
 cmake_policy(SET CMP0048 NEW)
 
-project(create3 VERSION 0.1.0)
+set(CREATE3_VERSION_MAJOR 0)
+set(CREATE3_VERSION_MINOR 1)
+set(CREATE3_VERSION_PATCH 0)
+
+project(create3 VERSION ${CREATE3_VERSION_MAJOR}.${CREATE3_VERSION_MINOR}.${CREATE3_VERSION_PATCH})
 
 cmake_minimum_required(VERSION 3.5)
 
@@ -9,6 +13,7 @@ option("server" "Build the server" ON)
 option("cmder" "Build the cmder" ON)
 option("tests" "Enable tests" ON)
 option("debug" "Enable debugging" OFF)
+option(packaage_debian "Build a debian package" OFF)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -50,4 +55,13 @@ endif()
 if(server)
     add_subdirectory(server)
 endif()
+
+set(CPACK_PACKAGE_NAME create3)
+set(CPACK_GENERATOR DEB ZIP)
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "KISS Institute for Practical Robotics")
+set(CPACK_PACKAGE_VERSION_MAJOR ${CREATE3_VERSION_MAJOR})
+set(CPACK_PACKAGE_VERSION_MINOR ${CREATE3_VERSION_MINOR})
+set(CPACK_PACKAGE_VERSION_PATCH ${CREATE3_VERSION_PATCH})
+set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE arm64)
+include(CPack)
 
