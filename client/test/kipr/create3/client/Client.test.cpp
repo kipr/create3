@@ -7,40 +7,6 @@
 using namespace kipr::create3;
 using namespace kipr::create3::client;
 
-/*TEST(Client, setVelocityDirect) {
-  class Server final : public Create3::Server {
-  public:
-    Server(double &linear_x, double &angular_z)
-      : linear_x_(linear_x)
-      , angular_z_(angular_z)
-    {
-    }
-
-    kj::Promise<void> setVelocity(SetVelocityContext context) override
-    {
-      auto params = context.getParams(); 
-      linear_x_ = params.getVelocity().getLinearX();
-      angular_z_ = params.getVelocity().getAngularZ();
-
-      return kj::READY_NOW;
-    }
-
-  private:
-    double &linear_x_;
-    double &angular_z_;
-  };
-
-  double linear_x = 0.0;
-  double angular_z = 0.0;
-  
-  auto client = mockClient(kj::heap<Server>(linear_x, angular_z));
-  client.setVelocityDirect({ .linear_x = 1.0, .angular_z = 2.0 });
-  client.wait();
-
-  EXPECT_EQ(linear_x, 1.0);
-  EXPECT_EQ(angular_z, 2.0);
-}*/
-
 TEST(Client, setVelocity) {
   class Server final : public Create3::Server {
   public:
@@ -70,16 +36,6 @@ TEST(Client, setVelocity) {
   auto client = mockClient(kj::heap<Server>(linear_x, angular_z));
   client.setVelocity({ .linear_x = 1.0, .angular_z = 2.0 });
   client.wait();
-
-  EXPECT_EQ(linear_x, 0.0);
-  EXPECT_EQ(angular_z, 0.0);
-
-
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-  std::cout << "asdasd" << std::endl;
-
-  client.spinOnce();
 
   EXPECT_EQ(linear_x, 1.0);
   EXPECT_EQ(angular_z, 2.0);

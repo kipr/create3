@@ -6,8 +6,6 @@
 #include <mutex>
 #include <chrono>
 #include <optional>
-#include <atomic>
-#include <thread>
 
 #include "AudioNote.hpp"
 #include "BumpSensor.hpp"
@@ -23,8 +21,6 @@
 #include "Pose.hpp"
 #include "Twist.hpp"
 
-#include "detail/DelayedCall.hpp"
-#include "detail/MostRecentDelayedCallExecutor.hpp"
 
 namespace kipr
 {
@@ -43,9 +39,9 @@ namespace client
 
   class Client
   {
-  private:
-    std::shared_ptr<detail::MostRecentDelayedCallExecutor> executor_;
   public:
+    friend struct ClientDebouncer;
+
     Client(std::unique_ptr<ClientImpl> &&impl);
     Client(Client &&rhs) = default;
     Client(const std::string &host = "localhost", const std::uint16_t port = 50051);
@@ -55,13 +51,9 @@ namespace client
     bool isDocked();
 
     void wait();
-    void spinOnce();
-
     void executeNextCommandImmediately();
 
-  
-    const detail::DelayedCallProxy<const Twist &> setVelocity;
-    void setVelocityDirect(const Twist &velocity);
+    void setVelocity(const Twist &velocity);
     void playAudio(const AudioNote *const notes, const std::size_t count, const bool overwrite = false);
 
     void dock();
@@ -85,12 +77,9 @@ namespace client
   private:
     Client(const Client &) = delete;
 
-    std::unique_ptr<ClientImpl> impl_;
+    void setVelocity_(const Twist &velocity);
 
-    void executorThread_();
-    std::thread executor_thread_;
-    std::atomic_bool executor_thread_should_exit_;
-    
+    std::unique_ptr<ClientImpl> impl_;
 
     mutable std::mutex wait_mut_;
 

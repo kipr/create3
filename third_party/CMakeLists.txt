@@ -3,8 +3,8 @@ include(FetchContent)
 set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
 
 FetchContent_Declare(capnproto
-  GIT_REPOSITORY https://github.com/kipr/capnproto
-  GIT_TAG release-1.0.0-kipr   
+  URL https://github.com/capnproto/capnproto/archive/refs/tags/v1.0.0.tar.gz
+  URL_HASH SHA256=bcd44dde78055313a7786cb6ab020cbef19b9045b53857f90cce101c9453f715
 )
 
 FetchContent_Declare(clipp

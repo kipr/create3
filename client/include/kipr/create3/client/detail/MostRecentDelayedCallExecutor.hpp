@@ -3,7 +3,6 @@
 #include "DelayedCall.hpp"
 
 #include <list>
-#include <mutex>
 
 namespace kipr
 {
@@ -18,14 +17,11 @@ namespace detail
   public:
     virtual void enqueue(const void *const tag, std::unique_ptr<DelayedCall> &&call) override;
     
-
-    bool empty() const;
     void clear();
 
     void execute();
 
   private:
-    mutable std::mutex mut_;
     std::list<std::pair<const void *, std::unique_ptr<DelayedCall>>> calls_;
   };
 }

@@ -7,36 +7,23 @@
 #include <iostream>
 #include <cmath>
 #include <string>
-#include <thread>
 
 #include "kipr/create3/client/ClientImpl.hpp"
 
 using namespace kipr::create3::client;
 
-using namespace std::placeholders;
-
 Client::Client(std::unique_ptr<ClientImpl> &&impl)
-  : executor_(std::make_shared<detail::MostRecentDelayedCallExecutor>())
-  , impl_(std::move(impl))
-  , setVelocity(std::bind(&Client::setVelocityDirect, this, _1), executor_)
-  , executor_thread_(&Client::executorThread_, this)
-  , executor_thread_should_exit_(false)
+  : impl_(std::move(impl))
 {
 }
 
 Client::Client(const std::string &host, const std::uint16_t port)
-  : executor_(std::make_shared<detail::MostRecentDelayedCallExecutor>())
-  , impl_(std::make_unique<RemoteClientImpl>(host, port))
-  , setVelocity(std::bind(&Client::setVelocityDirect, this, _1), executor_)
-  , executor_thread_(&Client::executorThread_, this)
-  , executor_thread_should_exit_(false)
+  : impl_(std::make_unique<RemoteClientImpl>(host, port))
 {
 }
 
 Client::~Client()
 {
-  executor_thread_should_exit_ = true;
-  executor_thread_.join();
 }
 
 bool Client::isConnected()
@@ -50,8 +37,6 @@ void Client::wait()
 {
   std::lock_guard<std::mutex> lock(wait_mut_);
 
-  spinOnce();
-
   if (!impl_->last_waitable)
   {
     return;
@@ -61,11 +46,6 @@ void Client::wait()
   impl_->last_waitable = std::nullopt;
 }
 
-void Client::spinOnce()
-{
-  impl_->eventLoop().run(100);
-}
-
 void Client::executeNextCommandImmediately()
 {
   std::lock_guard<std::mutex> lock(wait_mut_);
@@ -73,7 +53,7 @@ void Client::executeNextCommandImmediately()
   impl_->last_waitable = std::nullopt;
 }
 
-void Client::setVelocityDirect(const Twist &velocity)
+void Client::setVelocity(const Twist &velocity)
 {
   wait();
 
@@ -386,23 +366,4 @@ Odometry Client::getOdometry() const
   std::lock_guard<std::mutex> lock(latest_odometry_mut_);
   latest_odometry_ = Stamped<Odometry>{ .at = duration_cast<milliseconds>(system_clock::now().time_since_epoch()), .value = odometry };
   return odometry;
-}
-
-void Client::executorThread_()
-{
-  while (!executor_thread_should_exit_)
-  {
-    // Sleep for 1 millisecond
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
-
-    if (executor_->empty()) continue;
-
-    std::cout << "Scheduling execute" << std::endl;
-
-    // Execute all the calls in the executor on the main thread
-    impl_->eventLoop().getExecutor().executeSync([this] {
-      std::cout << "Execute" << std::endl;
-      executor_->execute();
-    });
-  }
 }

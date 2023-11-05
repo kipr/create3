@@ -1,4 +1,4 @@
-# iRobot® Create® 3 robot ROS2 server and client library
+# `iRobot® Create® 3 robot ROS2 server and client library`
 
 Holds a ROS2 C++ server for communicating with the iRobot® Create® 3 robot and an associated client library for communicating
 with said server. The server can then be packaged into a Docker image, allowing the client to remain free of ROS2 dependencies.
