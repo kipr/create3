@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <functional>
+#include <stdexcept>
 
 namespace kipr
 {
@@ -13,6 +14,9 @@ namespace client
 {
 namespace detail
 {
+  template <typename... T>
+  using ReflessTuple = std::tuple<typename std::remove_reference<T>::type...>;
+
   struct DelayedCall
   {
     virtual void operator ()() = 0;
@@ -21,9 +25,9 @@ namespace detail
   template<typename... Args>
   struct DelayedCallWrapper : public DelayedCall
   {
-    DelayedCallWrapper(const std::function<void (Args...)> &func, const std::tuple<Args...> &args)
+    DelayedCallWrapper(const std::function<void (Args...)> &func, ReflessTuple<Args...> &&args)
       : func_(func)
-      , args_(args)
+      , args_(std::move(args))
     {
     }
 
@@ -34,7 +38,7 @@ namespace detail
   
   private:
     std::function<void (Args...)> func_;
-    std::tuple<Args...> args_;
+    ReflessTuple<Args...> args_;
   };
 
   struct DelayedCallExecutor

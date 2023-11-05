@@ -17,6 +17,7 @@ namespace client
   {
     virtual kj::WaitScope &waitScope() = 0;
     virtual Create3::Client &create3Client() = 0;
+    virtual kj::EventLoop &eventLoop() = 0;
 
     std::optional<kj::Promise<void>> last_waitable; 
   };
@@ -27,6 +28,7 @@ namespace client
 
     kj::WaitScope &waitScope() override;
     Create3::Client &create3Client() override;
+    kj::EventLoop &eventLoop() override;
 
     capnp::EzRpcClient client;
     Create3::Client create3_client;
@@ -38,6 +40,7 @@ namespace client
 
     kj::WaitScope &waitScope() override;
     Create3::Client &create3Client() override;
+    kj::EventLoop &eventLoop() override;
 
     Create3::Client create3_client;
     kj::EventLoop loop;

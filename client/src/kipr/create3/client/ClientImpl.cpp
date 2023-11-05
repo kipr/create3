@@ -20,6 +20,11 @@ Create3::Client &RemoteClientImpl::create3Client()
   return create3_client;
 }
 
+kj::EventLoop &RemoteClientImpl::eventLoop()
+{
+  return client.getWaitScope().getLoop();
+}
+
 LocalClientImpl::LocalClientImpl(kj::Own<Create3::Server> &&server)
   : create3_client(std::move(server))
   , loop()
@@ -35,4 +40,9 @@ kj::WaitScope &LocalClientImpl::waitScope()
 Create3::Client &LocalClientImpl::create3Client()
 {
   return create3_client;
+}
+
+kj::EventLoop &LocalClientImpl::eventLoop()
+{
+  return loop;
 }
