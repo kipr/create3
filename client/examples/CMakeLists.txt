@@ -1,6 +1,6 @@
 function(add_example name)
   add_executable(${name} ${ARGN})
-  target_link_libraries(${name} ${CMAKE_PROJECT_NAME}_client)
+  target_link_libraries(${name} create3_client)
 endfunction()
 
 add_example(01_connect 01_connect.c)

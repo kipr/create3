@@ -1,19 +1,19 @@
 capnp_generate_cpp(SCHEMA_SOURCES SCHEMA_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/schema/kipr/create3/create3.capnp)
 
-add_library(${CMAKE_PROJECT_NAME}_common STATIC ${SCHEMA_SOURCES} ${SCHEMA_HEADERS})
-target_link_libraries(${CMAKE_PROJECT_NAME}_common PUBLIC CapnProto::capnp)
-target_include_directories(${CMAKE_PROJECT_NAME}_common PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/schema)
+add_library(create3_common STATIC ${SCHEMA_SOURCES} ${SCHEMA_HEADERS})
+target_link_libraries(create3_common PUBLIC CapnProto::capnp)
+target_include_directories(create3_common PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/schema)
 
 set_target_properties(
-  ${CMAKE_PROJECT_NAME}_common
+  create3_common
   PROPERTIES
   POSITION_INDEPENDENT_CODE ON
 )
 
-install(TARGETS ${CMAKE_PROJECT_NAME}_common
+install(TARGETS create3_common
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
 )
 
-install(FILES ${SCHEMA_HEADERS} DESTINATION include/kipr/${CMAKE_PROJECT_NAME})
+install(FILES ${SCHEMA_HEADERS} DESTINATION include/kipr/create3)
