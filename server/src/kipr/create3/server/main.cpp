@@ -162,21 +162,25 @@ public:
 
   const create_msg::HazardDetectionVector::ConstSharedPtr &getHazardDetectionVector() const
   {
+    usleep(2000);
     return latest_hazard_detection_;
   }
 
   const create_msg::IrIntensityVector::ConstSharedPtr &getCliffIntensityVector() const
   {
+    usleep(2000);
     return latest_cliff_intensity_;
   }
 
   const create_msg::IrIntensityVector::ConstSharedPtr &getIrIntensityVector() const
   {
+    usleep(2000);
     return latest_ir_intensity_;
   }
 
   const nav_msgs::msg::Odometry::ConstSharedPtr &getOdometry() const
   {
+    usleep(2000);
     return latest_odom_;
   }
 
