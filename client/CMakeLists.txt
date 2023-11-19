@@ -1,4 +1,4 @@
-add_library(create3_client SHARED
+add_library(create3_client STATIC
   src/kipr/create3/client/bump_sensor_c.cpp
   src/kipr/create3/client/client_c.cpp
   src/kipr/create3/client/Client.cpp
