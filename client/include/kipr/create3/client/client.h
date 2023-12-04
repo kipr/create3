@@ -171,12 +171,12 @@ int create3_is_connected();
  * green.b = 0;
  * 
  * struct Create3LightRing lightring;
- * light_ring.led0 = green;
- * light_ring.led1 = green;
- * light_ring.led2 = green;
- * light_ring.led3 = green;
- * light_ring.led4 = green;
- * light_ring.led5 = green;
+ * lightring.led0 = green;
+ * lightring.led1 = green;
+ * lightring.led2 = green;
+ * lightring.led3 = green;
+ * lightring.led4 = green;
+ * lightring.led5 = green;
  * 
  * create3_led_animation(Create3BlinkLights, lightring, 5.0); // Blink the lights green for 5 seconds.
  * ```
@@ -229,12 +229,12 @@ Create3Lightring create3_lightring(
  * green.b = 0;
  * 
  * struct Create3LightRing lightring;
- * light_ring.led0 = green;
- * light_ring.led1 = green;
- * light_ring.led2 = green;
- * light_ring.led3 = green;
- * light_ring.led4 = green;
- * light_ring.led5 = green;
+ * lightring.led0 = green;
+ * lightring.led1 = green;
+ * lightring.led2 = green;
+ * lightring.led3 = green;
+ * lightring.led4 = green;
+ * lightring.led5 = green;
  * 
  * create3_lightring(lightring); // Set the light ring to green.
  * ```
