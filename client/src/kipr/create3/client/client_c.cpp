@@ -401,7 +401,7 @@ int create3_sensor_cliff(int sensor_id) {
   }
   
   IrIntensityVector cliffSensors = global_client->getCliffIntensityVector();
-  return (int) cliffSensors[sensor_id].intensity;
+  return static_cast<int>(cliffSensors[sensor_id].intensity);
 }
 
 int create3_sensor_ir(int sensor_id) {
@@ -412,7 +412,7 @@ int create3_sensor_ir(int sensor_id) {
   }
   
   IrIntensityVector irSensors = global_client->getIrIntensityVector();
-  return (int) irSensors[sensor_id].intensity;
+  return static_cast<int>(irSensors[sensor_id].intensity);
 }
 
 void create3_undock()
