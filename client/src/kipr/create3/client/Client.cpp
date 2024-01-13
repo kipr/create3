@@ -232,7 +232,7 @@ IrIntensityVector Client::getCliffIntensityVector() const
 
   {
     std::lock_guard<std::mutex> lock(latest_cliff_intensity_vector_mut_);
-    if (latest_cliff_intensity_vector_ && latest_cliff_intensity_vector_->at > system_clock::now().time_since_epoch() - 1ms)
+    if (latest_cliff_intensity_vector_ && latest_cliff_intensity_vector_->at > system_clock::now().time_since_epoch() - 10ms)
     {
       return latest_cliff_intensity_vector_->value;
     }
@@ -264,7 +264,7 @@ HazardDetectionVector Client::getHazardDetectionVector() const
 
   {
     std::lock_guard<std::mutex> lock(latest_hazard_detection_vector_mut_);
-    if (latest_hazard_detection_vector_ && latest_hazard_detection_vector_->at > system_clock::now().time_since_epoch() - 1ms)
+    if (latest_hazard_detection_vector_ && latest_hazard_detection_vector_->at > system_clock::now().time_since_epoch() - 10ms)
     {
       return latest_hazard_detection_vector_->value;
     }
@@ -299,7 +299,7 @@ IrIntensityVector Client::getIrIntensityVector() const
 
   {
     std::lock_guard<std::mutex> lock(latest_ir_intensity_vector_mut_);
-    if (latest_ir_intensity_vector_ && latest_ir_intensity_vector_->at > system_clock::now().time_since_epoch() - 1ms)
+    if (latest_ir_intensity_vector_ && latest_ir_intensity_vector_->at > system_clock::now().time_since_epoch() - 10ms)
     {
       return latest_ir_intensity_vector_->value;
     }
@@ -331,7 +331,7 @@ Odometry Client::getOdometry() const
   {
     std::lock_guard<std::mutex> lock(latest_odometry_mut_);
     // Odometry remains valid for 10 milliseconds
-    if (latest_odometry_ && latest_odometry_->at > system_clock::now().time_since_epoch() - 1ms)
+    if (latest_odometry_ && latest_odometry_->at > system_clock::now().time_since_epoch() - 10ms)
     {
       return latest_odometry_->value;
     }
