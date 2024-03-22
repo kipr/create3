@@ -46,6 +46,7 @@ std::string programName(const char *const argv0)
 enum class Mode
 {
   SetVelocity,
+  EStop,
   Undock,
   Dock,
   CliffIntensity,
@@ -84,6 +85,8 @@ int main(int argc, char *argv[])
 
   Mode mode = Mode::Help;
 
+  bool stop = false;
+
   double linear_x = 0.0;
   double angular_z = 0.0;
 
@@ -117,6 +120,7 @@ int main(int argc, char *argv[])
       option("--address", "-a") & value("host:port") % "The server's address" >> set(address),
       (
         (command("set_velocity") >> set(mode, Mode::SetVelocity), value("linear_x") >> set(linear_x), value("angular_z") >> set(angular_z)) |
+        (command("estop") >> set(mode, Mode::EStop), value("stop") >> set(stop)) |
         (command("undock") >> set(mode, Mode::Undock)) |
         (command("dock") >> set(mode, Mode::Dock)) |
         (command("hazardDetection") >> set(mode, Mode::HazardDetection)) |

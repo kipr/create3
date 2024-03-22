@@ -46,6 +46,16 @@ void Client::wait()
   impl_->last_waitable = std::nullopt;
 }
 
+void Client::eStop()
+{
+  wait();
+
+  auto request = impl_->create3Client().eStopRequest();
+
+  std::lock_guard<std::mutex> lock(wait_mut_);
+  impl_->last_waitable = request.send().ignoreResult();
+}
+
 void Client::executeNextCommandImmediately()
 {
   std::lock_guard<std::mutex> lock(wait_mut_);

@@ -22,6 +22,8 @@
 #include <irobot_create_msgs/msg/led_color.hpp>
 #include <irobot_create_msgs/msg/wheel_vels.hpp>
 
+#include <irobot_create_msgs/srv/e_stop.hpp>
+
 #include <kipr/create3/create3.capnp.h>
 #include <capnp/ez-rpc.h>
 #include <kj/async.h>
@@ -100,8 +102,45 @@ AdaptedAction<T> adaptAction(const typename std::shared_ptr<rclcpp_action::Clien
   };
 }
 
+template<typename T>
+struct ServicePromiseAdapter
+{
+  ServicePromiseAdapter(kj::PromiseFulfiller<typename T::Response::SharedPtr> &fulfiller, const typename rclcpp::Client<typename T::Request>::SharedPtr &client, const typename T::Request &request)
+    : fulfiller_(fulfiller)
+  {
+    auto response = client->async_send_request(request);
+    response.then([this](auto response) {
+      fulfiller_.fulfill(typename T::Response::SharedPtr(response));
+    });
+  }
+
+private:
+  kj::PromiseFulfiller<typename T::Response::SharedPtr> &fulfiller_;
+};
+
+template<typename T>
+using AdaptedService = std::function<kj::Promise<typename T::Response::SharedPtr>(typename T::Request)>;
+
+template<typename T>
+AdaptedService<T> adaptService(const typename std::shared_ptr<rclcpp::Client<typename T::Request>> &client)
+{
+  return [client](auto request) {
+    if (!client->wait_for_service(1s))
+    {
+      return kj::Promise<typename T::Response::SharedPtr>(kj::Exception(
+        kj::Exception::Type::FAILED,
+        __FILE__,
+        __LINE__,
+        kj::heapString("Failed to connect to service")
+      ));
+    }
+    return kj::newAdaptedPromise<typename T::Response::SharedPtr, ServicePromiseAdapter<T>>(client, request);
+  };
+}
+
 namespace create_action = irobot_create_msgs::action;
 namespace create_msg = irobot_create_msgs::msg;
+namespace create_srv = irobot_create_msgs::srv;
 
 // rclcpp_action::Client<create_action::Dock>::WrappedResult dock;
 
@@ -117,6 +156,8 @@ public:
     , navigate_to(adaptAction(rclcpp_action::create_client<create_action::NavigateToPosition>(this, "navigate_to_position")))
     , rotate(adaptAction(rclcpp_action::create_client<create_action::RotateAngle>(this, "rotate_angle")))
     , undock(adaptAction(rclcpp_action::create_client<create_action::Undock>(this, "undock")))
+
+    , e_stop(adaptService(rclcpp::create_client<create_srv::EStop>(this, "e_stop")))
 
     , cmd_vel_pub_(create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10))
 
@@ -151,6 +192,14 @@ public:
     cmd_vel_pub_->publish(velocity);
     return kj::READY_NOW;
   }
+
+  // kj::Promise<void> setStop(const std::shared_ptr<create_srv::EStop_Request> request)
+  // {
+  //   estop_srv_->create_request();
+  //   return kj::READY_NOW;
+  // }
+
+  const AdaptedService<create_srv::EStop> e_stop;
   
   const AdaptedAction<create_action::Dock> dock;
   const AdaptedAction<create_action::DriveArc> drive_arc;
@@ -206,6 +255,8 @@ private:
   }
 
   rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub_;
+
+  // rclcpp::Service<create_srv::EStop_Request>::SharedPtr estop_srv_;
   
   rclcpp::Subscription<create_msg::HazardDetectionVector>::SharedPtr hazard_detection_sub_;
   rclcpp::Subscription<create_msg::IrIntensityVector>::SharedPtr cliff_intensity_sub_;
@@ -244,6 +295,15 @@ public:
     cmd_vel.angular.z = velocity.getAngularZ();
 
     return node_->setVelocity(cmd_vel);
+  }
+
+  kj::Promise<void> eStop(EStopContext context) override
+  {
+    auto params = context.getParams();
+    create_srv::EStop_Request request;
+    request.e_stop_on = params.getStop();
+
+    return node_->e_stop(request).ignoreResult();
   }
 
   kj::Promise<void> dock(DockContext context) override

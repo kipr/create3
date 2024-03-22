@@ -119,6 +119,14 @@ void create3_drive_straight(
 );
 
 /**
+  * @brief Immediately stop the iRobot Create 3.
+  * @details This will immediately stop the iRobot Create 3.
+  * 
+  * @example `create3_eStop();`
+  */
+void create3_eStop();
+
+/**
  * @brief Execute the next command immediately.
  * @details This will execute the next command immediately instead of waiting for the last command to finish executing.
  * 

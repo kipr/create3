@@ -51,6 +51,8 @@ namespace client
       void wait();
       void executeNextCommandImmediately();
 
+      void eStop();
+
       void setVelocity(const Twist &velocity);
       void playAudio(const AudioNote *const notes, const std::size_t count, const bool overwrite = false);
 

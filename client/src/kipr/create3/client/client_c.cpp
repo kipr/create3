@@ -148,6 +148,17 @@ void create3_drive_straight(const float distance, const float max_linear_speed)
   global_client->driveDistance(distance, max_linear_speed);
 }
 
+void create3_eStop()
+{
+  std::lock_guard<std::mutex> lock(global_client_mut);
+  if (!global_client)
+  {
+    std::cerr << __func__ << ": not connected" << std::endl;
+  }
+
+  global_client->eStop();
+}
+
 void create3_execute_next_command_immediately()
 {
   std::lock_guard<std::mutex> lock(global_client_mut);

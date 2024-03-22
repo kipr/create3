@@ -61,19 +61,20 @@ struct Pose {
 interface Create3 {
   isConnected @0 () -> (connected :Bool);
   setVelocity @1 (velocity :Twist);
+  eStop @2 (stop :Bool);
 
-  dock @2 ();
-  undock @3 ();
+  dock @3 ();
+  undock @4 ();
 
-  driveDistance @4 (distance :Float32, maxLinearSpeed :Float32);
-  driveArc @5 (direction :Int8, radius :Float32, angle :Float32, maxLinearSpeed :Float32);
-  ledAnimation @6 (animationType: Int8, lightring: Lightring, duration: Duration);
-  rotate @7 (angle :Float32, maxAngularSpeed :Float32);
-  navigateTo @8 (pose :Pose, maxLinearSpeed :Float32, maxAngularSpeed :Float32, achieveGoalHeading :Bool);
-  followWall @9 (follow :Int8, maxSeconds :Float32);
+  driveDistance @5 (distance :Float32, maxLinearSpeed :Float32);
+  driveArc @6 (direction :Int8, radius :Float32, angle :Float32, maxLinearSpeed :Float32);
+  ledAnimation @7 (animationType: Int8, lightring: Lightring, duration: Duration);
+  rotate @8 (angle :Float32, maxAngularSpeed :Float32);
+  navigateTo @9 (pose :Pose, maxLinearSpeed :Float32, maxAngularSpeed :Float32, achieveGoalHeading :Bool);
+  followWall @10 (follow :Int8, maxSeconds :Float32);
 
-  getCliffIntensityVector @10 () -> (cliffIntensityVector :List(IrIntensity));
-  getHazardDetectionVector @11 () -> (hazardDetectionVector :List(HazardDetection));
-  getIrIntensityVector @12 () -> (irIntensityVector :List(IrIntensity));
-  getOdometry @13 () -> (pose :Pose, velocity :Twist);
+  getCliffIntensityVector @11 () -> (cliffIntensityVector :List(IrIntensity));
+  getHazardDetectionVector @12 () -> (hazardDetectionVector :List(HazardDetection));
+  getIrIntensityVector @13 () -> (irIntensityVector :List(IrIntensity));
+  getOdometry @14 () -> (pose :Pose, velocity :Twist);
 }
