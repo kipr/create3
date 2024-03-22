@@ -105,38 +105,71 @@ AdaptedAction<T> adaptAction(const typename std::shared_ptr<rclcpp_action::Clien
 template<typename T>
 struct ServicePromiseAdapter
 {
-  ServicePromiseAdapter(kj::PromiseFulfiller<typename T::Response::SharedPtr> &fulfiller, const typename rclcpp::Client<typename T::Request>::SharedPtr &client, const typename T::Request &request)
-    : fulfiller_(fulfiller)
-  {
-    auto response = client->async_send_request(request);
-    response.then([this](auto response) {
-      fulfiller_.fulfill(typename T::Response::SharedPtr(response));
-    });
-  }
+    ServicePromiseAdapter(kj::PromiseFulfiller<typename T::Response::SharedPtr> &fulfiller,
+                          const typename rclcpp::Client<T>::SharedPtr &client,
+                          const typename T::Request::SharedPtr &request)
+        : fulfiller_(fulfiller)
+    {
+        auto response = client->async_send_request(request);
+        response.then([this](typename rclcpp::Client<T>::SharedFuture future) {
+            if (future.get()) {
+                fulfiller_.fulfill(future.get());
+            } else {
+                fulfiller_.reject(kj::Exception(kj::Exception::Type::FAILED, __FILE__, __LINE__, kj::heapString("Failed to send request")));
+            }
+        });
+    }
 
 private:
-  kj::PromiseFulfiller<typename T::Response::SharedPtr> &fulfiller_;
+    kj::PromiseFulfiller<typename T::Response::SharedPtr> &fulfiller_;
 };
 
 template<typename T>
-using AdaptedService = std::function<kj::Promise<typename T::Response::SharedPtr>(typename T::Request)>;
+using AdaptedService = std::function<kj::Promise<typename T::Response::SharedPtr>(typename T::Request::SharedPtr)>;
 
 template<typename T>
-AdaptedService<T> adaptService(const typename std::shared_ptr<rclcpp::Client<typename T::Request>> &client)
+AdaptedService<T> adaptService(const typename rclcpp::Client<T>::SharedPtr &client)
 {
-  return [client](auto request) {
-    if (!client->wait_for_service(1s))
-    {
-      return kj::Promise<typename T::Response::SharedPtr>(kj::Exception(
-        kj::Exception::Type::FAILED,
-        __FILE__,
-        __LINE__,
-        kj::heapString("Failed to connect to service")
-      ));
-    }
-    return kj::newAdaptedPromise<typename T::Response::SharedPtr, ServicePromiseAdapter<T>>(client, request);
-  };
+    return [client](typename T::Request::SharedPtr request) {
+        return kj::newAdaptedPromise<typename T::Response::SharedPtr, ServicePromiseAdapter<T>>(client, request);
+    };
 }
+
+// template<typename T>
+// struct ServicePromiseAdapter
+// {
+//   ServicePromiseAdapter(kj::PromiseFulfiller<typename T::Response::SharedPtr> &fulfiller, const typename rclcpp::Client<typename T::Request>::SharedPtr &client, const typename T::Request &request)
+//     : fulfiller_(fulfiller)
+//   {
+//     auto response = client->async_send_request(request);
+//     response.then([this](auto response) {
+//       fulfiller_.fulfill(typename T::Response::SharedPtr(response));
+//     });
+//   }
+
+// private:
+//   kj::PromiseFulfiller<typename T::Response::SharedPtr> &fulfiller_;
+// };
+
+// template<typename T>
+// using AdaptedService = std::function<kj::Promise<typename T::Response::SharedPtr>(typename T::Request)>;
+
+// template<typename T>
+// AdaptedService<T> adaptService(const typename std::shared_ptr<rclcpp::Client<typename T::Request>> &client)
+// {
+//   return [client](auto request) {
+//     if (!client->wait_for_service(1s))
+//     {
+//       return kj::Promise<typename T::Response::SharedPtr>(kj::Exception(
+//         kj::Exception::Type::FAILED,
+//         __FILE__,
+//         __LINE__,
+//         kj::heapString("Failed to connect to service")
+//       ));
+//     }
+//     return kj::newAdaptedPromise<typename T::Response::SharedPtr, ServicePromiseAdapter<T>>(client, request);
+//   };
+// }
 
 namespace create_action = irobot_create_msgs::action;
 namespace create_msg = irobot_create_msgs::msg;
@@ -157,7 +190,7 @@ public:
     , rotate(adaptAction(rclcpp_action::create_client<create_action::RotateAngle>(this, "rotate_angle")))
     , undock(adaptAction(rclcpp_action::create_client<create_action::Undock>(this, "undock")))
 
-    , e_stop(adaptService(rclcpp::create_client<create_srv::EStop>(this, "e_stop")))
+    , e_stop(adaptService<create_srv::EStop>(this->create_client<create_srv::EStop>("e_stop")))
 
     , cmd_vel_pub_(create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10))
 
@@ -300,8 +333,8 @@ public:
   kj::Promise<void> eStop(EStopContext context) override
   {
     auto params = context.getParams();
-    create_srv::EStop_Request request;
-    request.e_stop_on = params.getStop();
+    auto request = std::make_shared<create_srv::EStop_Request>();
+    request->e_stop_on = params.getStop();
 
     return node_->e_stop(request).ignoreResult();
   }
