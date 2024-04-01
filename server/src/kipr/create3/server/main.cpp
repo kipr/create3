@@ -32,11 +32,11 @@
 
 using namespace std::chrono_literals;
 
-template<typename T>
+template <typename T>
 struct ActionPromiseAdapter
 {
   ActionPromiseAdapter(kj::PromiseFulfiller<typename T::Result::SharedPtr> &fulfiller, const typename rclcpp_action::Client<T>::SharedPtr &client, const typename T::Goal &goal)
-    : fulfiller_(fulfiller)
+      : fulfiller_(fulfiller)
   {
     using namespace std::placeholders;
 
@@ -62,161 +62,123 @@ private:
   {
     switch (result.code)
     {
-      case rclcpp_action::ResultCode::SUCCEEDED:
-        fulfiller_.fulfill(typename T::Result::SharedPtr(result.result));
-        break;
-      default:
-        std::ostringstream ss;
-        ss << "Action failed with code " << static_cast<int>(result.code);
-        fulfiller_.reject(kj::Exception(
+    case rclcpp_action::ResultCode::SUCCEEDED:
+      fulfiller_.fulfill(typename T::Result::SharedPtr(result.result));
+      break;
+    default:
+      std::ostringstream ss;
+      ss << "Action failed with code " << static_cast<int>(result.code);
+      fulfiller_.reject(kj::Exception(
           kj::Exception::Type::FAILED,
           __FILE__,
           __LINE__,
-          kj::heapString(ss.str())
-        ));
-        break;
+          kj::heapString(ss.str())));
+      break;
     }
   }
 
   kj::PromiseFulfiller<typename T::Result::SharedPtr> &fulfiller_;
 };
 
-template<typename T>
+template <typename T>
 using AdaptedAction = std::function<kj::Promise<typename T::Result::SharedPtr>(typename T::Goal)>;
 
-template<typename T>
+template <typename T>
 AdaptedAction<T> adaptAction(const typename std::shared_ptr<rclcpp_action::Client<T>> &client)
 {
-  return [client](auto goal) {
+  return [client](auto goal)
+  {
     if (!client->wait_for_action_server(10s))
     {
       return kj::Promise<typename T::Result::SharedPtr>(kj::Exception(
-        kj::Exception::Type::FAILED,
-        __FILE__,
-        __LINE__,
-        kj::heapString("Failed to connect to action server")
-      ));
+          kj::Exception::Type::FAILED,
+          __FILE__,
+          __LINE__,
+          kj::heapString("Failed to connect to action server")));
     }
 
     return kj::newAdaptedPromise<typename T::Result::SharedPtr, ActionPromiseAdapter<T>>(client, goal);
   };
 }
 
-template<typename T>
+template <typename T>
 struct ServicePromiseAdapter
 {
-    ServicePromiseAdapter(kj::PromiseFulfiller<typename T::Response::SharedPtr> &fulfiller,
-                          const typename rclcpp::Client<T>::SharedPtr &client,
-                          const typename T::Request::SharedPtr &request)
-        : fulfiller_(fulfiller)
-    {
-        auto response = client->async_send_request(request);
-        response.then([this](typename rclcpp::Client<T>::SharedFuture future) {
-            if (future.get()) {
-                fulfiller_.fulfill(future.get());
-            } else {
-                fulfiller_.reject(kj::Exception(kj::Exception::Type::FAILED, __FILE__, __LINE__, kj::heapString("Failed to send request")));
-            }
-        });
-    }
+  ServicePromiseAdapter(kj::PromiseFulfiller<typename T::Response::SharedPtr> &fulfiller,
+                        const typename rclcpp::Client<T>::SharedPtr &client,
+                        const typename T::Request::SharedPtr &request)
+      : fulfiller_(fulfiller)
+  {
+    client->async_send_request(request, std::bind(&ServicePromiseAdapter::onResponse, this, std::placeholders::_1));
+  }
 
 private:
-    kj::PromiseFulfiller<typename T::Response::SharedPtr> &fulfiller_;
+  void onResponse(typename rclcpp::Client<T>::SharedFuture future)
+  {
+    if (future.valid())
+    {
+      fulfiller_.fulfill(future.get());
+    }
+    else
+    {
+      fulfiller_.reject(kj::Exception(kj::Exception::Type::FAILED, __FILE__, __LINE__, kj::heapString("Failed to send request")));
+    }
+  }
+
+  kj::PromiseFulfiller<typename T::Response::SharedPtr> &fulfiller_;
 };
 
-template<typename T>
+template <typename T>
 using AdaptedService = std::function<kj::Promise<typename T::Response::SharedPtr>(typename T::Request::SharedPtr)>;
 
-template<typename T>
+template <typename T>
 AdaptedService<T> adaptService(const typename rclcpp::Client<T>::SharedPtr &client)
 {
-    return [client](typename T::Request::SharedPtr request) {
-        return kj::newAdaptedPromise<typename T::Response::SharedPtr, ServicePromiseAdapter<T>>(client, request);
-    };
+  return [client](typename T::Request::SharedPtr request)
+  {
+    return kj::newAdaptedPromise<typename T::Response::SharedPtr, ServicePromiseAdapter<T>>(client, request);
+  };
 }
-
-// template<typename T>
-// struct ServicePromiseAdapter
-// {
-//   ServicePromiseAdapter(kj::PromiseFulfiller<typename T::Response::SharedPtr> &fulfiller, const typename rclcpp::Client<typename T::Request>::SharedPtr &client, const typename T::Request &request)
-//     : fulfiller_(fulfiller)
-//   {
-//     auto response = client->async_send_request(request);
-//     response.then([this](auto response) {
-//       fulfiller_.fulfill(typename T::Response::SharedPtr(response));
-//     });
-//   }
-
-// private:
-//   kj::PromiseFulfiller<typename T::Response::SharedPtr> &fulfiller_;
-// };
-
-// template<typename T>
-// using AdaptedService = std::function<kj::Promise<typename T::Response::SharedPtr>(typename T::Request)>;
-
-// template<typename T>
-// AdaptedService<T> adaptService(const typename std::shared_ptr<rclcpp::Client<typename T::Request>> &client)
-// {
-//   return [client](auto request) {
-//     if (!client->wait_for_service(1s))
-//     {
-//       return kj::Promise<typename T::Response::SharedPtr>(kj::Exception(
-//         kj::Exception::Type::FAILED,
-//         __FILE__,
-//         __LINE__,
-//         kj::heapString("Failed to connect to service")
-//       ));
-//     }
-//     return kj::newAdaptedPromise<typename T::Response::SharedPtr, ServicePromiseAdapter<T>>(client, request);
-//   };
-// }
 
 namespace create_action = irobot_create_msgs::action;
 namespace create_msg = irobot_create_msgs::msg;
 namespace create_srv = irobot_create_msgs::srv;
 
-// rclcpp_action::Client<create_action::Dock>::WrappedResult dock;
-
 class Create3Node : public rclcpp::Node
 {
 public:
   Create3Node()
-    : Node("create3")
-    , dock(adaptAction(rclcpp_action::create_client<create_action::Dock>(this, "dock")))
-    , drive_arc(adaptAction(rclcpp_action::create_client<create_action::DriveArc>(this, "drive_arc")))
-    , drive_distance(adaptAction(rclcpp_action::create_client<create_action::DriveDistance>(this, "drive_distance")))
-    , led_animation(adaptAction(rclcpp_action::create_client<create_action::LedAnimation>(this, "led_animation")))
-    , navigate_to(adaptAction(rclcpp_action::create_client<create_action::NavigateToPosition>(this, "navigate_to_position")))
-    , rotate(adaptAction(rclcpp_action::create_client<create_action::RotateAngle>(this, "rotate_angle")))
-    , undock(adaptAction(rclcpp_action::create_client<create_action::Undock>(this, "undock")))
+      : Node("create3"), dock(adaptAction(rclcpp_action::create_client<create_action::Dock>(this, "dock"))), drive_arc(adaptAction(rclcpp_action::create_client<create_action::DriveArc>(this, "drive_arc"))), drive_distance(adaptAction(rclcpp_action::create_client<create_action::DriveDistance>(this, "drive_distance"))), led_animation(adaptAction(rclcpp_action::create_client<create_action::LedAnimation>(this, "led_animation"))), navigate_to(adaptAction(rclcpp_action::create_client<create_action::NavigateToPosition>(this, "navigate_to_position"))), rotate(adaptAction(rclcpp_action::create_client<create_action::RotateAngle>(this, "rotate_angle"))), undock(adaptAction(rclcpp_action::create_client<create_action::Undock>(this, "undock")))
 
-    , e_stop(adaptService<create_srv::EStop>(this->create_client<create_srv::EStop>("e_stop")))
+        ,
+        e_stop(adaptService<create_srv::EStop>(this->create_client<create_srv::EStop>("e_stop")))
 
-    , cmd_vel_pub_(create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10))
+        ,
+        cmd_vel_pub_(create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10))
 
-    , cliff_intensity_sub_(create_subscription<create_msg::IrIntensityVector>(
-        "cliff_intensity",
-        rclcpp::QoS(rclcpp::KeepLast(10), rmw_qos_profile_sensor_data),
-        std::bind(&Create3Node::onCliffIntensity, this, std::placeholders::_1)
-      ))
+        ,
+        cliff_intensity_sub_(create_subscription<create_msg::IrIntensityVector>(
+            "cliff_intensity",
+            rclcpp::QoS(rclcpp::KeepLast(10), rmw_qos_profile_sensor_data),
+            std::bind(&Create3Node::onCliffIntensity, this, std::placeholders::_1)))
 
-    , hazard_detection_sub_(create_subscription<create_msg::HazardDetectionVector>(
-        "hazard_detection",
-        rclcpp::QoS(rclcpp::KeepLast(10), rmw_qos_profile_sensor_data),
-        std::bind(&Create3Node::onHazardDetection, this, std::placeholders::_1)
-      ))
+        ,
+        hazard_detection_sub_(create_subscription<create_msg::HazardDetectionVector>(
+            "hazard_detection",
+            rclcpp::QoS(rclcpp::KeepLast(10), rmw_qos_profile_sensor_data),
+            std::bind(&Create3Node::onHazardDetection, this, std::placeholders::_1)))
 
-    , ir_intensity_sub_(create_subscription<create_msg::IrIntensityVector>(
-        "ir_intensity",
-        rclcpp::QoS(rclcpp::KeepLast(10), rmw_qos_profile_sensor_data),
-        std::bind(&Create3Node::onIrIntensity, this, std::placeholders::_1)
-      ))        
-        
-    , odom_sub_(create_subscription<nav_msgs::msg::Odometry>(
-        "odom",
-        rclcpp::QoS(rclcpp::KeepLast(10), rmw_qos_profile_sensor_data),
-        std::bind(&Create3Node::onOdom, this, std::placeholders::_1)
-      ))
+        ,
+        ir_intensity_sub_(create_subscription<create_msg::IrIntensityVector>(
+            "ir_intensity",
+            rclcpp::QoS(rclcpp::KeepLast(10), rmw_qos_profile_sensor_data),
+            std::bind(&Create3Node::onIrIntensity, this, std::placeholders::_1)))
+
+        ,
+        odom_sub_(create_subscription<nav_msgs::msg::Odometry>(
+            "odom",
+            rclcpp::QoS(rclcpp::KeepLast(10), rmw_qos_profile_sensor_data),
+            std::bind(&Create3Node::onOdom, this, std::placeholders::_1)))
   {
   }
 
@@ -233,7 +195,7 @@ public:
   // }
 
   const AdaptedService<create_srv::EStop> e_stop;
-  
+
   const AdaptedAction<create_action::Dock> dock;
   const AdaptedAction<create_action::DriveArc> drive_arc;
   const AdaptedAction<create_action::DriveDistance> drive_distance;
@@ -281,7 +243,7 @@ private:
   {
     latest_ir_intensity_ = msg;
   }
-  
+
   void onOdom(const nav_msgs::msg::Odometry::ConstSharedPtr &msg)
   {
     latest_odom_ = msg;
@@ -290,7 +252,7 @@ private:
   rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub_;
 
   // rclcpp::Service<create_srv::EStop_Request>::SharedPtr estop_srv_;
-  
+
   rclcpp::Subscription<create_msg::HazardDetectionVector>::SharedPtr hazard_detection_sub_;
   rclcpp::Subscription<create_msg::IrIntensityVector>::SharedPtr cliff_intensity_sub_;
   rclcpp::Subscription<create_msg::IrIntensityVector>::SharedPtr ir_intensity_sub_;
@@ -306,7 +268,7 @@ class Create3Server : public kipr::create3::Create3::Server
 {
 public:
   Create3Server(const std::shared_ptr<Create3Node> &node)
-    : node_(node)
+      : node_(node)
   {
   }
 
@@ -341,7 +303,7 @@ public:
 
   kj::Promise<void> dock(DockContext context) override
   {
-    return node_->dock(create_action::Dock::Goal {}).ignoreResult();
+    return node_->dock(create_action::Dock::Goal{}).ignoreResult();
   }
 
   kj::Promise<void> driveArc(DriveArcContext context) override
@@ -443,7 +405,7 @@ public:
 
   kj::Promise<void> undock(UndockContext context) override
   {
-    return node_->undock(create_action::Undock::Goal {}).ignoreResult();
+    return node_->undock(create_action::Undock::Goal{}).ignoreResult();
   }
 
   kj::Promise<void> getCliffIntensityVector(GetCliffIntensityVectorContext context) override
@@ -537,7 +499,6 @@ public:
 private:
   std::shared_ptr<Create3Node> node_;
 };
-
 
 int main(int argc, char *const argv[])
 {
