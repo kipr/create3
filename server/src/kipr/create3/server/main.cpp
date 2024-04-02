@@ -117,7 +117,7 @@ private:
   {
     if (future.valid())
     {
-      fulfiller_.fulfill(future.get());
+      fulfiller_.fulfill(std::move(typename T::Response::SharedPtr(future.get())));
     }
     else
     {
