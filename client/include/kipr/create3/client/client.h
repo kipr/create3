@@ -478,6 +478,17 @@ void create3_velocity_set_components(const double linear_x, const double angular
  */
 void create3_wait();
 
+/**
+ * @brief Set the wheels of the iRobot Create 3.
+ * @details This will set the left and right wheels of the iRobot Create 3 to the given speeds in m/s.
+ *
+ * @param left The speed of the left wheel in meters per second.
+ * @param right The speed of the right wheel in meters per second.
+ *
+ * @example `create3_set_wheels(1.0, 1.0); // Set both wheels to 1 m/s.`
+ */
+void create3_set_wheels(const double left, const double right);
+
 #ifdef __cplusplus
 }
 #endif

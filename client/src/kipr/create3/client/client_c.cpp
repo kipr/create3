@@ -468,3 +468,11 @@ void create3_wait()
 
   global_client->wait();
 }
+
+void create3_set_wheels(const double left_wheel_speed, const double right_wheel_speed)
+{
+    const double creat3_wheel_distance= 0.235;
+    double linear_x = (left_wheel_speed + right_wheel_speed) / 2;
+    double angular_z = (right_wheel_speed - left_wheel_speed) / creat3_wheel_distance;
+    create3_velocity_set_components(linear_x, angular_z);
+}
