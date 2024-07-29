@@ -6,6 +6,7 @@ using namespace kipr::create3::client;
 
 RemoteClientImpl::RemoteClientImpl(const std::string &host, const std::uint16_t port)
   : client(kj::StringPtr(host.data()), port)
+  , ClientImpl(host, port)
   , create3_client(client.getMain<Create3>())
 {
 }
@@ -22,6 +23,7 @@ Create3::Client &RemoteClientImpl::create3Client()
 
 LocalClientImpl::LocalClientImpl(kj::Own<Create3::Server> &&server)
   : create3_client(std::move(server))
+  , ClientImpl(host, port)
   , loop()
   , wait(loop)
 {

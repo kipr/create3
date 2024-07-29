@@ -15,8 +15,14 @@ namespace client
 {
   struct ClientImpl
   {
+    const std::string host;
+    const std::uint16_t port;
+
     virtual kj::WaitScope &waitScope() = 0;
     virtual Create3::Client &create3Client() = 0;
+
+    ClientImpl(const std::string &host, const std::uint16_t port) : host(host), port(port) {
+    }
 
     std::optional<kj::Promise<void>> last_waitable; 
   };

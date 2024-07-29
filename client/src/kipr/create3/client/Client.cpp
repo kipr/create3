@@ -26,6 +26,18 @@ Client::~Client()
 {
 }
 
+std::string Client::getHost() const
+{
+  std::string host = impl_->host;
+  return host;
+}
+
+std::uint16_t Client::getPort() const
+{
+  std::uint16_t port = impl_->port;
+  return port;
+}
+
 bool Client::isConnected()
 {
   auto request = impl_->create3Client().isConnectedRequest();

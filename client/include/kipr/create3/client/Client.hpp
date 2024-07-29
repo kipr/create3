@@ -72,6 +72,9 @@ namespace client
       IrIntensityVector getIrIntensityVector() const;
       Odometry getOdometry() const;
 
+      std::string getHost() const;
+      std::uint16_t getPort() const;
+
     private:
       Client(const Client &) = delete;
 

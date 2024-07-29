@@ -10,6 +10,7 @@
 #include "kipr/create3/client/Lightring.hpp"
 #include "kipr/create3/client/Quaternion.hpp"
 #include "kipr/create3/client/Vector3.hpp"
+#include "kj/exception.h"
 
 #include <cmath>
 #include <cstring>
@@ -48,17 +49,20 @@ using namespace kipr::create3::client;
 //   create3_audio_play(notes, count, 0);
 // }
 
-int create3_connect()
+void resetGlobalClient()
 {
-  std::lock_guard<std::mutex> lock(global_client_mut);
-  if (global_client)
+  if (!global_client)
   {
-    std::cerr << __func__ << ": already connected" << std::endl;
-    return true;
+    return;
   }
 
-  global_client = std::make_unique<Client>();
+  std::cerr << __func__ << ": already connected. Trying to reconnect" << std::endl;
+  global_client = nullptr;
+}
 
+void createNewClient(const char *const host, const unsigned short port)
+{
+  global_client = std::make_unique<Client>(host, port);
   std::cout << __func__ << ": Waiting for the Create 3 to connect..." << std::endl;
 
   while (!global_client->isConnected())
@@ -67,31 +71,27 @@ int create3_connect()
   }
 
   std::cout << __func__ << ": Create 3 connected!" << std::endl;
+}
 
-  return true;
+void renewClient() {
+  std::string host = global_client->getHost();
+  std::uint16_t port = global_client->getPort();
+
+  resetGlobalClient();
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  createNewClient(host.data(), port);
+}
+
+int create3_connect()
+{
+  return create3_connect_manual("localhost", 50051);
 }
 
 int create3_connect_manual(const char *const host, const unsigned short port)
 {
   std::lock_guard<std::mutex> lock(global_client_mut);
-
-  if (global_client)
-  {
-    std::cerr << __func__ << ": already connected" << std::endl;
-    return false;
-  }
-
-  global_client = std::make_unique<Client>(host, port);
-
-  std::cout << __func__ << ": Waiting for the Create 3 to connect..." << std::endl;
-
-  while (!global_client->isConnected())
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-
-  std::cout << __func__ << ": Create 3 connected!" << std::endl;
-
+  resetGlobalClient();
+  createNewClient(host, port);
   return true;
 }
 
@@ -201,6 +201,34 @@ Create3LedColor create3_led_color(const int r, const int g, const int b) {
   color.g = (uint8_t) g;
   color.b = (uint8_t) b;
   return color;
+}
+
+Create3Lightring create3_lightring(
+    const Create3LedColor led0,
+    const Create3LedColor led1,
+    const Create3LedColor led2,
+    const Create3LedColor led3,
+    const Create3LedColor led4,
+    const Create3LedColor led5
+) {
+  Create3Lightring lightring;
+  lightring.led0 = led0;
+  lightring.led1 = led1;
+  lightring.led2 = led2;
+  lightring.led3 = led3;
+  lightring.led4 = led4;
+  lightring.led5 = led5;
+  return lightring;
+}
+
+void create3_lightring_set(const Create3Lightring lightring) {
+  std::lock_guard<std::mutex> lock(global_client_mut);
+  if (!global_client) {
+    std::cerr << __func__ << ": not connected" << std::endl;
+    return;
+  }
+  Duration duration = create3_duration_from_double(1.0);
+  global_client->ledAnimation(LedAnimationType::Create3BlinkLights, lightring, duration);
 }
 
 void create3_navigate_to_pose(const Create3Pose pose, const float max_linear_speed, const float max_angular_speed, const int achieve_goal_heading)
@@ -466,5 +494,10 @@ void create3_wait()
     return;
   }
 
-  global_client->wait();
+  try {
+    global_client->wait();
+  } catch (kj::Exception &e) {
+    std::cerr << __func__ << ": Create3 failed to wait for a command" << std::endl;
+    renewClient();
+  }
 }
